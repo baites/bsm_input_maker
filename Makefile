@@ -9,7 +9,7 @@ LIB      = libPBInput.so
 HEADS    = $(wildcard ./interface/*.h)
 MSGS     = $(wildcard ./proto/*LinkDef.h)
 DICS     = $(wildcard ./src/*LinkDef.h)
-SRCS     = $(wildcard ./src/*.cc) 
+SRCS     = $(filter-out %.pb.cc,$(wildcard ./src/*.cc))
 
 OBJS       = $(foreach obj,$(addprefix ./obj/,$(patsubst %.cc,%.o,$(notdir $(SRCS)))),$(obj))
 
@@ -56,6 +56,8 @@ pb: $(MESSAGES) $(PROTOCOBJS)
 $(MESSAGES):
 	@echo "[+] Generating Protocol Buffers ..."
 	protoc -I=proto --cpp_out message $(patsubst message/%.pb.h,proto/%.proto,$@)
+	@pushd ./interface &> /dev/null; ln -s ../$@; popd &> /dev/null
+	@pushd src &> /dev/null; ln -s ../$(patsubst %.h,%.cc,$@); popd &> /dev/null
 	@echo
 
 $(PROTOCOBJS): $(MESSAGES)
@@ -80,7 +82,7 @@ lib: $(LIB)
 
 $(LIB): $(OBJS)
 	@echo "[+] Generating Library ..."
-	$(CCC) $(LDFLAGS) -o $(addprefix ./lib/,$@)
+	$(CCC) $(LDFLAGS) -o $(addprefix ./lib/,$@) $(PROTOCOBJS)
 	@echo
 
 
@@ -96,15 +98,14 @@ $(PROGS): $(OBJS)
 
 # Cleaning
 #
-clean:
-ifeq ($(strip $(PROGS)),)
-	rm -f ./message/*.{h,cc}
-	rm -f ./obj/*.o
-	rm -f $(addprefix ./lib/,$(LIB))
-else
+cleanbin:
+ifneq ($(strip $(PROGS)),)
 	rm -f $(addprefix ./bin/,$(PROGS))
-	rm -f ./message/*.{h,cc}
-	rm -f ./obj/*.o
-	rm -f ./dic/*.{h,cxx}
-	rm -f $(addprefix ./lib/,$(LIB))
 endif
+
+clean: cleanbin
+	rm -f ./obj/*.o
+	rm -f ./message/*.pb.{h,cc}
+	rm -f ./interface/*.pb.h
+	rm -f ./src/*.pb.cc
+	rm -f $(addprefix ./lib/,$(LIB))

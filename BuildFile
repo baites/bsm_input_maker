@@ -1,0 +1,4 @@
+<use name=root>
+<use name=boost>
+
+<Flags CXXFLAGS="-L/usr/lib -lprotobuf">
