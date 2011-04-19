@@ -37,7 +37,7 @@ namespace bsm
             boost::shared_ptr<ZeroCopyOutputStream> _raw_out;
             boost::shared_ptr<CodedOutputStream> _coded_out;
 
-            int _events_written;
+            uint32_t _events_written;
     };
 }
 
