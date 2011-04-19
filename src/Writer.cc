@@ -12,7 +12,12 @@
 #include <google/protobuf/io/zero_copy_stream.h>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 
+#include "interface/Event.pb.h"
+
 #include "interface/Writer.h"
+
+using std::ios;
+using std::string;
 
 using bsm::Writer;
 
@@ -21,7 +26,7 @@ Writer::Writer(const boost::filesystem::path &output):
             ios::out | ios::trunc | ios::binary),
     _events_written(0)
 {
-    _raw_out.reset(new ZeroCopyOutputStream(&_output));
+    _raw_out.reset(new ::google::protobuf::io::OstreamOutputStream(&_output));
     _coded_out.reset(new CodedOutputStream(_raw_out.get()));
 
     _coded_out->WriteLittleEndian32(_events_written);
@@ -34,11 +39,11 @@ Writer::~Writer()
 
     _output.seekp(0);
 
-    _raw_out.reset(new ZeroCopyOutputStream(&_output));
+    _raw_out.reset(new ::google::protobuf::io::OstreamOutputStream(&_output));
     _coded_out.reset(new CodedOutputStream(_raw_out.get()));
     _coded_out->WriteLittleEndian32(_events_written);
 
-    _coded.out.reset();
+    _coded_out.reset();
     _raw_out.reset();
 
     _output.close();
@@ -47,13 +52,13 @@ Writer::~Writer()
 bool Writer::write(const Event &event)
 {
     string message;
-    if (!event.serializeToString(&message))
+    if (!event.SerializeToString(&message))
         return false;
 
     _coded_out->WriteVarint32(message.size());
     _coded_out->WriteString(message);
 
-    ++events_written;
+    ++_events_written;
 
     return true;
 }
