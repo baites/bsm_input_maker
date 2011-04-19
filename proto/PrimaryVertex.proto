@@ -1,0 +1,17 @@
+// Primary vertices (interaction points)
+//
+// Created by Samvel Khalatyan, Apr 19, 2011
+// Copyright 2011, All rights reserved
+
+import "Physics.proto";
+
+package bsm;
+
+message PrimaryVertex
+{
+    required Vector vertex = 1;
+
+    optional bool is_good = 2 [default = false];
+    optional float ndof = 3;
+    optional float rho = 4;
+}

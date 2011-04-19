@@ -1,0 +1,19 @@
+// Input Event
+//
+// The message is the Physics Event.
+//
+// Created by Samvel Khalatyan, Apr 19, 2011
+// Copyright 2011, All rights reserved
+
+import "Jet.proto";
+import "Muon.proto";
+import "PrimaryVertex.proto";
+
+package bsm;
+
+message Event
+{
+    repeated PrimaryVertex primary_vertices = 1;
+    repeated Jet jets = 2;
+    repeated Muon muons = 3;
+}

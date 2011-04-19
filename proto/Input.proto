@@ -1,0 +1,46 @@
+// Input description
+//
+// The message should be present in every input file as the very first saved
+// message followed with the list of Events
+//
+// Created by Samvel Khalatyan, Apr 19, 2011
+// Copyright 2011, All rights reserved
+
+package bsm;
+
+message Info
+{
+    optional double xsection = 1;
+    optional double luminosity = 2;
+    optional double filter_efficiency = 3;
+}
+
+message History
+{
+    optional fixed64 create_date = 1;
+    optional string dataset = 2;
+}
+
+message Input
+{
+    enum Type
+    {
+        UNKNOWN = 0;
+        DATA = 1;
+        TTBAR = 2;
+        QCD = 3;
+        WJETS = 4;
+        ZJETS = 5;
+        VQQ = 6;
+        SINGLE_TOP_T_CHANNEL = 7;
+        SINGLE_TOP_S_CHANNEL = 8;
+        SINGLE_TOP_TW_CHANNEL = 9;
+        WC = 10;
+    }
+
+    required Type type = 1;
+    required int32 events = 2;
+
+    optional History history = 3;
+    optional Info info = 4;
+}
