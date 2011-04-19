@@ -1,4 +1,5 @@
 <use name=root>
 <use name=boost>
 
-<Flags CXXFLAGS="-L/usr/lib -lprotobuf">
+<Flags CXXFLAGS="-I${CMSSW_BASE}/src/bsm_input_maker/input/interface">
+<Flags LDFLAGS="-L/usr/lib -lprotobuf">
