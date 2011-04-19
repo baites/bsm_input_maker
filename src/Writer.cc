@@ -42,11 +42,6 @@ Writer::~Writer()
     _raw_out.reset(new ::google::protobuf::io::OstreamOutputStream(&_output));
     _coded_out.reset(new CodedOutputStream(_raw_out.get()));
     _coded_out->WriteLittleEndian32(_events_written);
-
-    _coded_out.reset();
-    _raw_out.reset();
-
-    _output.close();
 }
 
 bool Writer::write(const Event &event)
