@@ -3,4 +3,4 @@
 
 <flags cxxflags="-I${CMSSW_BASE}/src/bsm_input_maker/input/interface">
 <flags ldflags="-L/usr/lib -lprotobuf">
-<flags skip_files="Writer.cc">
+<flags skip_files="Writer.cc Reader.cc">
