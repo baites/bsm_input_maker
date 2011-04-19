@@ -52,6 +52,11 @@ uint32_t Reader::eventsRead() const
     return _events_read;
 }
 
+uint32_t Reader::eventsStored() const
+{
+    return _events_stored;
+}
+
 bool Reader::read(Event &event)
 {
     if (!good())
@@ -69,7 +74,7 @@ bool Reader::read(Event &event)
     {
         string message;
         if (!_coded_in->ReadString(&message, message_size)
-            || event.ParseFromString(message))
+            || !event.ParseFromString(message))
 
             return false;
     }

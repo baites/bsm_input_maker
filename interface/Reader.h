@@ -25,6 +25,7 @@ namespace bsm
 
             virtual bool good() const;
             virtual uint32_t eventsRead() const;
+            virtual uint32_t eventsStored() const;
 
             virtual bool read(Event &);
 
