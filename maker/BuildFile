@@ -1,11 +1,14 @@
 <use name=root>
 <use name=boost>
 <use name=DataFormats/Common>
+<use name=DataFormats/PatCandidates>
 <use name=FWCore/Common>
 <use name=FWCore/Framework>
 <use name=FWCore/MessageLogger>
 <use name=FWCore/ParameterSet>
 <use name=FWCore/ServiceRegistry>
 <use name=FWCore/Utilities>
+<use name=bsm_input_maker/input>
 
+<flags CXXFLAGS="-I${CMSSW_BASE}/src/bsm_input_maker/input/interface">
 <flags EDM_PLUGIN="1">

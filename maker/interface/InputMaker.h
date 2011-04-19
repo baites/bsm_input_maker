@@ -8,8 +8,6 @@
 
 #include <string>
 
-#include <boost/shared_ptr.hpp>
-
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDAnalyzer.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
@@ -26,6 +24,10 @@ namespace bsm
             virtual void beginJob();
             virtual void analyze(const edm::Event &, const edm::EventSetup &);
             virtual void endJob();
+
+            void jets(const edm::Event &);
+
+            std::string _jets_tag;
     };
 }
 
