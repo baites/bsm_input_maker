@@ -21,14 +21,19 @@ namespace bsm
     class Reader
     {
         public:
+            typedef boost::shared_ptr<Input> InputPtr;
+
             Reader(const boost::filesystem::path &input);
             virtual ~Reader();
 
+            virtual bool good() const;
+
+            virtual const InputPtr input() const;
+
             virtual bool read(Event &);
+            virtual bool skip();
 
         private:
-            bool good() const;
-
             bool read(std::string &);
 
             std::fstream _std_in;
@@ -43,8 +48,8 @@ namespace bsm
             boost::shared_ptr<CodedInputStream> _coded_in;
 
             bool _is_good;
-            uint32_t _events_read;
-            boost::shared_ptr<Input> _input;
+            uint32_t _current_event;
+            InputPtr _input;
     };
 }
 

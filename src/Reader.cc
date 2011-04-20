@@ -33,7 +33,7 @@ Reader::Reader(const boost::filesystem::path &input):
     _std_in(input.string().c_str(),
             ios::in | ios::binary),
     _is_good(true),
-    _events_read(0)
+    _current_event(0)
 {
     _raw_in.reset(new ::google::protobuf::io::IstreamInputStream(&_std_in));
     _coded_in.reset(new CodedInputStream(_raw_in.get()));
@@ -80,12 +80,17 @@ bool Reader::good() const
     return _is_good;
 }
 
+const Reader::InputPtr Reader::input() const
+{
+    return _input;
+}
+
 bool Reader::read(Event &event)
 {
     if (!good())
         return false;
 
-    if (_events_read == _input->events())
+    if (_current_event == _input->events())
         return false;
 
     string message;
@@ -97,7 +102,27 @@ bool Reader::read(Event &event)
 
         return false;
 
-    ++_events_read;
+    ++_current_event;
+
+    return true;
+}
+
+bool Reader::skip()
+{
+    if (!good())
+        return false;
+
+    uint32_t message_size;
+    if (!_coded_in->ReadVarint32(&message_size))
+    {
+        _is_good = false;
+
+        return false;
+    }
+
+    _coded_in->Skip(message_size);
+
+    ++_current_event;
 
     return true;
 }

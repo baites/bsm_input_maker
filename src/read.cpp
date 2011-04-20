@@ -129,11 +129,12 @@ try
         h_muon_pz->GetXaxis()->SetTitle("PZ_{MUON} [GeV/c]");
 
         boost::shared_ptr<Reader> reader(new Reader(fs::path(argv[1])));
-        //cout << "Start reading events: " << reader->input()->events() << endl;
+        cout << "Start reading events: " << reader->input()->events() << endl;
 
+        uint32_t events_read = 0;
         for(boost::shared_ptr<Event> event(new Event());
                 reader->read(*event);
-                )
+                ++events_read)
         {
             h_npv->Fill(event->primary_vertices_size());
 
@@ -186,7 +187,8 @@ try
 
             event->Clear();
         }
-        //cout << "Events read: " << reader->eventsRead() << endl;
+
+        cout << "Events read: " << events_read << endl;
 
         {
             boost::shared_ptr<TRint> app(new TRint("app", &argc, argv));
