@@ -15,12 +15,6 @@ message Info
     optional double filter_efficiency = 3;
 }
 
-message History
-{
-    optional fixed64 create_date = 1;
-    optional string dataset = 2;
-}
-
 message Input
 {
     enum Type
@@ -38,9 +32,12 @@ message Input
         WC = 10;
     }
 
-    required Type type = 1;
-    required int32 events = 2;
+    optional Type type = 1 [default = UNKNOWN];
+    optional int32 events = 2 [default = 0];
 
-    optional History history = 3;
+    // Create date is a UTC time (milliseconds)
+    //
+    optional fixed64 create_date = 3 [default = 0];
+
     optional Info info = 4;
 }
