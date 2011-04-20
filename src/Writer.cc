@@ -2,7 +2,7 @@
 //
 // Write messages into specified output file. The file format:
 //
-//  0-8         64 bit pointer to the Input message (file type, etc.)
+//  0-8         length of [event] section
 //  [event]     events are stored one after another
 //  [Input]     Input message is always the last one in the file
 //
@@ -55,7 +55,7 @@ Writer::~Writer()
 {
     // Write Input at the end of the file
     //
-    int bytes_written = _coded_out->ByteCount();
+    int bytes_written = _coded_out->ByteCount() - 8;
 
     string message;
     _input->SerializeToString(&message);
