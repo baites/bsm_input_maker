@@ -33,7 +33,7 @@ message Input
     }
 
     optional Type type = 1 [default = UNKNOWN];
-    optional int32 events = 2 [default = 0];
+    optional uint32 events = 2 [default = 0];
 
     // Create date is a UTC time (milliseconds)
     //
