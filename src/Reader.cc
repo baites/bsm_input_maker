@@ -9,7 +9,6 @@
 
 #include <iostream>
 #include <stdexcept>
-#include <string>
 
 #include <google/protobuf/stubs/common.h>
 #include <google/protobuf/io/coded_stream.h>
@@ -29,8 +28,8 @@ using std::runtime_error;
 
 using bsm::Reader;
 
-Reader::Reader(const boost::filesystem::path &input):
-    _std_in(input.string().c_str(),
+Reader::Reader(const string &input):
+    _std_in(input.c_str(),
             ios::in | ios::binary),
     _is_good(true),
     _current_event(0)
@@ -63,7 +62,7 @@ Reader::Reader(const boost::filesystem::path &input):
     _raw_in.reset();
 
     _std_in.close();
-    _std_in.open(input.string().c_str(), ios::in | ios::binary);
+    _std_in.open(input.c_str(), ios::in | ios::binary);
 
     _raw_in.reset(new ::google::protobuf::io::IstreamInputStream(&_std_in));
     _coded_in.reset(new CodedInputStream(_raw_in.get()));

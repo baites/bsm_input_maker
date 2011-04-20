@@ -9,8 +9,8 @@
 #define BSM_IO_READER
 
 #include <fstream>
+#include <string>
 
-#include <boost/filesystem.hpp>
 #include <boost/shared_ptr.hpp>
 
 namespace bsm
@@ -23,7 +23,7 @@ namespace bsm
         public:
             typedef boost::shared_ptr<Input> InputPtr;
 
-            Reader(const boost::filesystem::path &input);
+            Reader(const std::string &input);
             virtual ~Reader();
 
             virtual bool good() const;

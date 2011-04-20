@@ -7,7 +7,6 @@
 
 #include <iostream>
 
-#include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
 
 #include <TRandom3.h>
@@ -26,8 +25,6 @@ using bsm::Writer;
 using std::cerr;
 using std::cout;
 using std::endl;
-
-namespace fs = boost::filesystem;
 
 int main(int argc, const char *argv[])
 try
@@ -50,10 +47,10 @@ try
         if (3 == argc)
         {
             events = boost::lexical_cast<uint32_t>(argv[1]);
-            writer.reset(new Writer(fs::path(argv[2])));
+            writer.reset(new Writer(argv[2]));
         }
         else
-            writer.reset(new Writer(fs::path(argv[1])));
+            writer.reset(new Writer(argv[1]));
 
         boost::shared_ptr<Event> event(new Event());
         boost::shared_ptr<TRandom> randomizer(new TRandom3());

@@ -22,7 +22,7 @@ namespace bsm
     class Writer
     {
         public:
-            Writer(const boost::filesystem::path &output_file);
+            Writer(const std::string &output_file);
             virtual ~Writer();
 
             virtual bool write(const Event &);

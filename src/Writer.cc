@@ -37,8 +37,8 @@ using std::string;
 
 using bsm::Writer;
 
-Writer::Writer(const boost::filesystem::path &output):
-    _std_out(output.string().c_str(),
+Writer::Writer(const string &output):
+    _std_out(output.c_str(),
             ios::out | ios::trunc | ios::binary)
 {
     _raw_out.reset(new ::google::protobuf::io::OstreamOutputStream(&_std_out));

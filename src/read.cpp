@@ -8,8 +8,6 @@
 #include <iostream>
 #include <vector>
 
-#include <boost/filesystem.hpp>
-
 #include <TCanvas.h>
 #include <TH1F.h>
 #include <TRint.h>
@@ -30,8 +28,6 @@ using std::cerr;
 using std::cout;
 using std::endl;
 using std::vector;
-
-namespace fs = boost::filesystem;
 
 int main(int argc, char *argv[])
 try
@@ -128,7 +124,7 @@ try
         h_muon_pz->SetDirectory(0);
         h_muon_pz->GetXaxis()->SetTitle("PZ_{MUON} [GeV/c]");
 
-        boost::shared_ptr<Reader> reader(new Reader(fs::path(argv[1])));
+        boost::shared_ptr<Reader> reader(new Reader(argv[1]));
         cout << "Start reading events: " << reader->input()->events() << endl;
 
         uint32_t events_read = 0;
