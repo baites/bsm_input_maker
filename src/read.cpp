@@ -15,6 +15,7 @@
 #include <TRint.h>
 
 #include "interface/Event.pb.h"
+#include "interface/Input.pb.h"
 #include "interface/Reader.h"
 
 using bsm::Event;
@@ -128,7 +129,7 @@ try
         h_muon_pz->GetXaxis()->SetTitle("PZ_{MUON} [GeV/c]");
 
         boost::shared_ptr<Reader> reader(new Reader(fs::path(argv[1])));
-        cout << "Start reading events: " << reader->eventsStored() << endl;
+        //cout << "Start reading events: " << reader->input()->events() << endl;
 
         for(boost::shared_ptr<Event> event(new Event());
                 reader->read(*event);
@@ -185,7 +186,7 @@ try
 
             event->Clear();
         }
-        cout << "Events read: " << reader->eventsRead() << endl;
+        //cout << "Events read: " << reader->eventsRead() << endl;
 
         {
             boost::shared_ptr<TRint> app(new TRint("app", &argc, argv));

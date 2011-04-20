@@ -16,6 +16,7 @@
 namespace bsm
 {
     class Event;
+    class Input;
 
     class Reader
     {
@@ -23,14 +24,14 @@ namespace bsm
             Reader(const boost::filesystem::path &input);
             virtual ~Reader();
 
-            virtual bool good() const;
-            virtual uint32_t eventsRead() const;
-            virtual uint32_t eventsStored() const;
-
             virtual bool read(Event &);
 
         private:
-            std::fstream _input;
+            bool good() const;
+
+            bool read(std::string &);
+
+            std::fstream _std_in;
             
             typedef ::google::protobuf::io::ZeroCopyInputStream
                 ZeroCopyInputStream;
@@ -42,8 +43,8 @@ namespace bsm
             boost::shared_ptr<CodedInputStream> _coded_in;
 
             bool _is_good;
-            uint32_t _events_stored;
             uint32_t _events_read;
+            boost::shared_ptr<Input> _input;
     };
 }
 
