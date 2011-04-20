@@ -3,6 +3,8 @@
 // Created by Samvel Khalatyan, Apr 19, 2011
 // Copyright 2011, All rights reserved
 
+#include <string>
+
 #include "DataFormats/PatCandidates/interface/Jet.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
@@ -12,8 +14,11 @@
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 
 #include "bsm_input_maker/input/interface/Event.pb.h"
+#include "bsm_input_maker/input/interface/Writer.h"
 
 #include "bsm_input_maker/maker/interface/InputMaker.h"
+
+using std::string;
 
 using edm::Handle;
 using edm::InputTag;
@@ -25,10 +30,20 @@ using bsm::InputMaker;
 
 InputMaker::InputMaker(const ParameterSet &config)
 {
+    GOOGLE_PROTOBUF_VERIFY_VERSION;
+
+    _writer.reset(new Writer(config.getParameter<string>("fileName")));
+    _event.reset(new Event());
+
+    _jets_tag = config.getParameter<string>("jets");
 }
 
 InputMaker::~InputMaker()
 {
+    _event.reset();
+    _writer.reset();
+
+    google::protobuf::ShutdownProtobufLibrary();
 }
 
 
@@ -42,7 +57,11 @@ void InputMaker::beginJob()
 void InputMaker::analyze(const edm::Event &event,
                         const edm::EventSetup &setup)
 {
+    _event->Clear();
+
     jets(event);
+
+    _writer->write(*_event);
 }
 
 void InputMaker::endJob()

@@ -8,12 +8,17 @@
 
 #include <string>
 
+#include <boost/shared_ptr.hpp>
+
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDAnalyzer.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
 namespace bsm
 {
+    class Event;
+    class Writer;
+
     class InputMaker: public edm:: EDAnalyzer
     {
         public:
@@ -28,6 +33,9 @@ namespace bsm
             void jets(const edm::Event &);
 
             std::string _jets_tag;
+
+            boost::shared_ptr<Writer> _writer;
+            boost::shared_ptr<Event> _event;
     };
 }
 
