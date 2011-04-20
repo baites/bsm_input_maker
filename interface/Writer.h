@@ -9,6 +9,7 @@
 #define BSM_IO_WRITER
 
 #include <fstream>
+#include <string>
 
 #include <boost/filesystem.hpp>
 #include <boost/shared_ptr.hpp>
@@ -16,6 +17,7 @@
 namespace bsm
 {
     class Event;
+    class Input;
 
     class Writer
     {
@@ -26,7 +28,11 @@ namespace bsm
             virtual bool write(const Event &);
 
         private:
-            std::fstream _output;
+            // Physical write to the file
+            //
+            void write(const std::string &);
+
+            std::fstream _std_out;
             
             typedef ::google::protobuf::io::ZeroCopyOutputStream
                 ZeroCopyOutputStream;
@@ -37,7 +43,7 @@ namespace bsm
             boost::shared_ptr<ZeroCopyOutputStream> _raw_out;
             boost::shared_ptr<CodedOutputStream> _coded_out;
 
-            uint32_t _events_written;
+            boost::shared_ptr<Input> _input;
     };
 }
 
