@@ -11,7 +11,6 @@
 #include <fstream>
 #include <string>
 
-#include <boost/filesystem.hpp>
 #include <boost/shared_ptr.hpp>
 
 namespace bsm

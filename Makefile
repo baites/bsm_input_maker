@@ -27,8 +27,8 @@ else
 	DEBUG = -O0 -g
 endif
 
-CXXFLAGS = ${DEBUG} -pipe -Wall -I./  -I/opt/local/include/ -I${BOOST_ROOT}/include -I${ROOTSYS}/include
-LIBS     = -L/opt/local/lib -lprotobuf -L${BOOST_ROOT}/lib -lboost_filesystem -lboost_system
+CXXFLAGS = ${DEBUG} -fPIC -pipe -Wall -I./  -I/opt/local/include/ -I${BOOST_ROOT}/include -I${ROOTSYS}/include
+LIBS     = -L/opt/local/lib -lprotobuf -L${BOOST_ROOT}/lib
 LDFLAGS  = -shared -W1 `root-config --libs` -L/opt/local/lib -lprotobuf
 
 # Rules to be always executed: empty ones
