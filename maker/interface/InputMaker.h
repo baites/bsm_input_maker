@@ -31,8 +31,12 @@ namespace bsm
             virtual void endJob();
 
             void jets(const edm::Event &);
+            void electrons(const edm::Event &);
+            void muons(const edm::Event &);
 
             std::string _jets_tag;
+            std::string _electrons_tag;
+            std::string _muons_tag;
 
             boost::shared_ptr<Writer> _writer;
             boost::shared_ptr<Event> _event;
