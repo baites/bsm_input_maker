@@ -32,13 +32,6 @@ process.options = cms.untracked.PSet(
     wantSummary = cms.untracked.bool(True)
 )
 
-#-- TFileService --------------------------------------------------------------
-process.TFileService = cms.Service(
-    "TFileService",
-    fileName = cms.string("mc_kinematics.root"),
-    closeFileFast = cms.untracked.bool(True)
-)
-
 #-- Analysis ------------------------------------------------------------------
 process.load("bsm_input_maker.maker.InputMaker_cfi")
 
