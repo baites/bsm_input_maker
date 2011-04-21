@@ -1,0 +1,13 @@
+// Physics Electron
+//
+// Created by Samvel Khalatyan, Apr 21, 2011
+// Copyright 2011, All rights reserved
+
+import "Physics.proto";
+
+package bsm;
+
+message Electron
+{
+    required PhysicsObject physics_object = 1;
+}
