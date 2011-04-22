@@ -93,14 +93,12 @@ void InputMaker::jets(const edm::Event &event)
             jets->end() != jet;
             ++jet)
     {
-        if (!jet->genParton())
-            continue;
-
         bsm::Jet *pb_jet = _event->add_jets();
 
-        utility::set(pb_jet->mutable_physics_object()->mutable_p4(), &jet->p4());
+        utility::set(pb_jet->mutable_physics_object()->mutable_p4(),
+                &jet->p4());
         utility::set(pb_jet->mutable_physics_object()->mutable_vertex(),
-            &jet->genParton()->vertex());
+            &jet->vertex());
     }
 }
 
