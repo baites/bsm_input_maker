@@ -99,6 +99,18 @@ void InputMaker::jets(const edm::Event &event)
                 &jet->p4());
         utility::set(pb_jet->mutable_physics_object()->mutable_vertex(),
             &jet->vertex());
+
+        // Skip the rest if Generator Parton is not found for the jet
+        //
+        if (!jet->genParton())
+            continue;
+
+        const reco::GenParticle *parton = jet->genParton();
+        utility::set(pb_jet->mutable_gen_parton()->mutable_physics_object()->mutable_p4(),
+                &parton->p4());
+
+        utility::set(pb_jet->mutable_gen_parton()->mutable_physics_object()->mutable_vertex(),
+                &parton->vertex());
     }
 }
 

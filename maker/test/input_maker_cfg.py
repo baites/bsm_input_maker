@@ -25,7 +25,7 @@ if (os.path.exists("input.txt")):
         process.source.fileNames.append("dcap:///pnfs/cms/WAX/11" + file.strip())
 
 process.maxEvents = cms.untracked.PSet(
-        input = cms.untracked.int32(1000)
+        input = cms.untracked.int32(10000)
 )
 
 process.options = cms.untracked.PSet(
