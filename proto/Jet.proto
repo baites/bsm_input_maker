@@ -12,5 +12,5 @@ message Jet
 {
     required PhysicsObject physics_object = 1;
 
-    optional GenParticle gen_particle = 2;
+    optional GenParticle gen_parton = 2;
 }
