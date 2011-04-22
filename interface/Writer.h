@@ -13,6 +13,9 @@
 
 #include <boost/shared_ptr.hpp>
 
+#include <google/protobuf/io/coded_stream.h>
+#include <google/protobuf/io/zero_copy_stream.h>
+
 namespace bsm
 {
     class Event;
