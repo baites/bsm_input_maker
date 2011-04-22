@@ -7,8 +7,6 @@ LIB      = libPBInput.so
 # Get list of all heads, sources and objects. Each source (%.cc) whould have
 # an object file except programs listed in PROGS
 HEADS    = $(wildcard ./interface/*.h)
-MSGS     = $(wildcard ./proto/*LinkDef.h)
-DICS     = $(wildcard ./src/*LinkDef.h)
 SRCS     = $(filter-out %.pb.cc,$(wildcard ./src/*.cc))
 
 OBJS       = $(foreach obj,$(addprefix ./obj/,$(patsubst %.cc,%.o,$(notdir $(SRCS)))),$(obj))
@@ -34,7 +32,7 @@ LDFLAGS  = -shared -W1 `root-config --libs` -L/opt/local/lib -lprotobuf
 # Rules to be always executed: empty ones
 .PHONY: all
 
-all: pb $(OBJS) lib $(PROGS)
+all: pb obj lib prog 
 
 help:
 	@echo "make <rule>"
@@ -45,12 +43,18 @@ help:
 	@echo "  all        compile executables"
 	@echo
 
+pb: $(MESSAGES) $(PROTOCOBJS)
+
+obj: $(OBJS)
+
+lib: $(LIB)
+
+prog: $(PROGS)
+
 
 
 # Protocol Buffers
 #
-pb: $(MESSAGES) $(PROTOCOBJS)
-
 $(MESSAGES):
 	@echo "[+] Generating Protocol Buffers ..."
 	protoc -I=proto --cpp_out message $(patsubst message/%.pb.h,proto/%.proto,$@)
@@ -76,8 +80,6 @@ $(OBJS): $(SRCS) $(HEADS)
 
 # Libraries
 #
-lib: $(LIB)
-
 $(LIB): $(OBJS)
 	@echo "[+] Generating Library ..."
 	$(CCC) $(LDFLAGS) -o $(addprefix ./lib/,$@) $(PROTOCOBJS)
