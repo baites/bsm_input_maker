@@ -4,10 +4,13 @@
 // Copyright 2011, All rights reserved
 
 import "Physics.proto";
+import "GenParticle.proto";
 
 package bsm;
 
 message Jet
 {
     required PhysicsObject physics_object = 1;
+
+    optional GenParticle gen_particle = 2;
 }
