@@ -82,7 +82,7 @@ $(OBJS): $(SRCS) $(HEADS)
 #
 $(LIB): $(OBJS)
 	@echo "[+] Generating Library ..."
-	$(CCC) $(LDFLAGS) -o $(addprefix ./lib/,$@) $(PROTOCOBJS)
+	$(CCC) $(LDFLAGS) -o $(addprefix ./lib/,$@) $(PROTOCOBJS) $(OBJS)
 	@echo
 
 
