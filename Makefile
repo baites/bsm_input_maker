@@ -32,7 +32,7 @@ LDFLAGS  = -shared -W1 `root-config --libs` -L/opt/local/lib -lprotobuf
 # Rules to be always executed: empty ones
 .PHONY: all
 
-all: pb obj lib prog 
+all: pb obj lib
 
 help:
 	@echo "make <rule>"
