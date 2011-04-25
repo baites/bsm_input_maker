@@ -27,7 +27,7 @@ endif
 
 CXXFLAGS = ${DEBUG} -fPIC -pipe -Wall -I./  -I/opt/local/include/ -I${BOOST_ROOT}/include -I${ROOTSYS}/include
 LIBS     = -L/opt/local/lib -lprotobuf -L${BOOST_ROOT}/lib
-LDFLAGS  = -shared -W1 `root-config --libs` -L/opt/local/lib -lprotobuf
+LDFLAGS  = `root-config --libs` -L/opt/local/lib -lprotobuf
 
 # Rules to be always executed: empty ones
 .PHONY: all
@@ -82,7 +82,7 @@ $(OBJS): $(SRCS) $(HEADS)
 #
 $(LIB): $(OBJS)
 	@echo "[+] Generating Library ..."
-	$(CCC) $(LDFLAGS) -o $(addprefix ./lib/,$@) $(PROTOCOBJS) $(OBJS)
+	$(CCC) -shared -W1,-soname,$(basename $@) $(LDFLAGS) -o $(addprefix ./lib/,$@) $(PROTOCOBJS) $(OBJS)
 	@echo
 
 
