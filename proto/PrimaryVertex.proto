@@ -9,5 +9,5 @@ package bsm;
 
 message PrimaryVertex
 {
-    required PhysicsObject physics_object = 1;
+    required Vector vertex = 1;
 }
