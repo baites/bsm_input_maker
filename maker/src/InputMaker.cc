@@ -202,11 +202,7 @@ void InputMaker::primaryVertices(const edm::Event &event)
 
         bsm::PrimaryVertex *pb_vertex = _event->add_primary_vertices();
 
-        math::XYZTLorentzVectorD vertex_p4 = vertex->p4();
-        utility::set(pb_vertex->mutable_physics_object()->mutable_p4(),
-                &vertex_p4);
-        utility::set(pb_vertex->mutable_physics_object()->mutable_vertex(),
-                &vertex->position());
+        utility::set(pb_vertex->mutable_vertex(), &vertex->position());
     }
 }
 
