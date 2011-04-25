@@ -83,6 +83,7 @@ $(OBJS): $(SRCS) $(HEADS)
 $(LIB): $(OBJS)
 	@echo "[+] Generating Library ..."
 	$(CCC) -shared -W1,-soname,$(basename $@) $(LDFLAGS) -o $(addprefix ./lib/,$@) $(PROTOCOBJS) $(OBJS)
+	@cd ./lib; ln -fs $@ $(basename $@); ln -fs $(basename $@) $(basename $(basename $@))
 	@echo
 
 
@@ -108,4 +109,4 @@ clean: cleanbin
 	rm -f ./message/*.pb.{h,cc}
 	rm -f ./interface/*.pb.h
 	rm -f ./src/*.pb.cc
-	rm -f $(addprefix ./lib/,$(LIB))
+	rm -f $(addprefix ./lib/,$(basename $(basename $(LIB)))*)
