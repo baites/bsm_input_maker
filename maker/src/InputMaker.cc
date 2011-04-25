@@ -4,10 +4,13 @@
 // Copyright 2011, All rights reserved
 
 #include <string>
+#include <vector>
 
 #include "DataFormats/PatCandidates/interface/Jet.h"
 #include "DataFormats/PatCandidates/interface/Electron.h"
+#include "DataFormats/PatCandidates/interface/MET.h"
 #include "DataFormats/PatCandidates/interface/Muon.h"
+#include "DataFormats/VertexReco/interface/Vertex.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
@@ -17,17 +20,21 @@
 
 #include "bsm_input_maker/input/interface/Event.pb.h"
 #include "bsm_input_maker/input/interface/Writer.h"
+#include "bsm_input_maker/maker/interface/Selector.h"
 #include "bsm_input_maker/maker/interface/Utility.h"
 
 #include "bsm_input_maker/maker/interface/InputMaker.h"
 
 using std::string;
+using std::vector;
 
 using edm::Handle;
 using edm::InputTag;
 using edm::LogInfo;
 using edm::LogWarning;
 using edm::ParameterSet;
+
+using reco::Vertex;
 
 using bsm::InputMaker;
 
@@ -41,6 +48,8 @@ InputMaker::InputMaker(const ParameterSet &config)
     _jets_tag = config.getParameter<string>("jets");
     _electrons_tag = config.getParameter<string>("electrons");
     _muons_tag = config.getParameter<string>("muons");
+    _primary_vertices_tag = config.getParameter<string>("primary_vertices");
+    _missing_energies = config.getParameter<string>("missing_energies");
 }
 
 InputMaker::~InputMaker()
@@ -67,6 +76,8 @@ void InputMaker::analyze(const edm::Event &event,
     jets(event);
     electrons(event);
     muons(event);
+    primaryVertices(event);
+    met(event);
 
     _writer->write(*_event);
 }
@@ -166,6 +177,66 @@ void InputMaker::muons(const edm::Event &event)
         utility::set(pb_muon->mutable_physics_object()->mutable_vertex(),
                 &muon->vertex());
     }
+}
+
+void InputMaker::primaryVertices(const edm::Event &event)
+{
+    typedef vector<Vertex> PVCollection;
+
+    Handle<PVCollection> primary_vertices;
+    event.getByLabel(InputTag(_primary_vertices_tag), primary_vertices);
+
+    if (!primary_vertices.isValid())
+    {
+        LogWarning("InputMaker") << "failed to extract primary_vertices";
+
+        return;
+    }
+
+    for(PVCollection::const_iterator vertex = primary_vertices->begin();
+            primary_vertices->end() != vertex;
+            ++vertex)
+    {
+        if (!selector::isGoodPrimaryVertex(*vertex, event.isRealData()))
+            continue;
+
+        bsm::PrimaryVertex *pb_vertex = _event->add_primary_vertices();
+
+        math::XYZTLorentzVectorD vertex_p4 = vertex->p4();
+        utility::set(pb_vertex->mutable_physics_object()->mutable_p4(),
+                &vertex_p4);
+        utility::set(pb_vertex->mutable_physics_object()->mutable_vertex(),
+                &vertex->position());
+    }
+}
+
+void InputMaker::met(const edm::Event &event)
+{
+    using pat::METCollection;
+
+    Handle<METCollection> mets;
+    event.getByLabel(InputTag(_missing_energies), mets);
+
+    if (!mets.isValid())
+    {
+        LogWarning("InputMaker") << "failed to extract mets";
+
+        return;
+    }
+
+    if (!mets->size())
+    {
+        LogWarning("InputMaker") << "empty mets";
+
+        return;
+    }
+
+    bsm::MissingEnergy *pb_met = _event->mutable_missing_energy();
+
+    utility::set(pb_met->mutable_physics_object()->mutable_p4(),
+            &mets->begin()->p4());
+    utility::set(pb_met->mutable_physics_object()->mutable_vertex(),
+            &mets->begin()->vertex());
 }
 
 DEFINE_FWK_MODULE(InputMaker);

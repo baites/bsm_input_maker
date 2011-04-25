@@ -2,6 +2,7 @@
 <use name=boost>
 <use name=DataFormats/Common>
 <use name=DataFormats/PatCandidates>
+<use name=DataFormats/VertexReco>
 <use name=FWCore/Common>
 <use name=FWCore/Framework>
 <use name=FWCore/MessageLogger>

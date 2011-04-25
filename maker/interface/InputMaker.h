@@ -33,10 +33,14 @@ namespace bsm
             void jets(const edm::Event &);
             void electrons(const edm::Event &);
             void muons(const edm::Event &);
+            void primaryVertices(const edm::Event &);
+            void met(const edm::Event &);
 
             std::string _jets_tag;
             std::string _electrons_tag;
             std::string _muons_tag;
+            std::string _primary_vertices_tag;
+            std::string _missing_energies;
 
             boost::shared_ptr<Writer> _writer;
             boost::shared_ptr<Event> _event;

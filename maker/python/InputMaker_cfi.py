@@ -6,5 +6,7 @@ InputMaker = cms.EDAnalyzer(
 
     jets = cms.string("goodPatJetsCA8PF"),
     electrons = cms.string("selectedPatElectrons"),
-    muons = cms.string("selectedPatMuons")
+    muons = cms.string("selectedPatMuons"),
+    primary_vertices = cms.string("offlinePrimaryVertices"),
+    missing_energies = cms.string("patMETs")
 )
