@@ -9,9 +9,5 @@ package bsm;
 
 message PrimaryVertex
 {
-    required Vector vertex = 1;
-
-    optional bool is_good = 2 [default = false];
-    optional float ndof = 3;
-    optional float rho = 4;
+    required PhysicsObject physics_object = 1;
 }
