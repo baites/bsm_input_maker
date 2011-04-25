@@ -8,6 +8,7 @@
 import "Electron.proto";
 import "Jet.proto";
 import "Muon.proto";
+import "MissingEnergy.proto";
 import "PrimaryVertex.proto";
 
 package bsm;
@@ -18,4 +19,5 @@ message Event
     repeated Jet jets = 2;
     repeated Muon muons = 3;
     repeated Electron electrons = 4;
+    optional MissingEnergy missing_energy = 5;
 }
