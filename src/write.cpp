@@ -47,7 +47,7 @@ try
         if (3 == argc)
         {
             events = boost::lexical_cast<uint32_t>(argv[1]);
-            writer.reset(new Writer(argv[2]));
+            writer.reset(new Writer(argv[2], 10000));
         }
         else
             writer.reset(new Writer(argv[1]));

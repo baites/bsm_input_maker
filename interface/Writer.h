@@ -12,9 +12,12 @@
 #include <string>
 
 #include <boost/shared_ptr.hpp>
+#include <boost/filesystem.hpp>
 
 #include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/io/zero_copy_stream.h>
+
+namespace fs = boost::filesystem;
 
 namespace bsm
 {
@@ -24,7 +27,10 @@ namespace bsm
     class Writer
     {
         public:
-            Writer(const std::string &output_file);
+            Writer(const std::string &output_file,
+                    // Filesize is in KB
+                    //
+                    const uint32_t &file_size = 10000);
             virtual ~Writer();
 
             virtual bool write(const Event &);
@@ -34,7 +40,16 @@ namespace bsm
             //
             void write(const std::string &);
 
+            void open();
+            void close();
+
+            std::string filename();
+
             std::fstream _std_out;
+            fs::path _path;
+            const int _file_size;
+
+            uint32_t _file_number;
             
             typedef ::google::protobuf::io::ZeroCopyOutputStream
                 ZeroCopyOutputStream;
