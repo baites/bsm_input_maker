@@ -37,7 +37,8 @@ Reader::Reader(const string &input):
 
     // Push limit of read bytes
     //
-    _coded_in->SetTotalBytesLimit(pow(1024, 3), 900 * pow(1024, 2));
+    _coded_in->SetTotalBytesLimit(static_cast<int>(pow(1024, 3)),
+            static_cast<int>(900 * pow(1024, 2)));
 
     _input.reset(new Input());
 
