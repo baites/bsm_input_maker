@@ -1,6 +1,7 @@
 <use name=root>
 <use name=boost>
 <use name=boost_system>
+<use name=boost_filesystem>
 
 <flags cxxflags="-I${CMSSW_BASE}/src/bsm_input_maker/input/interface -I${CMSSW_BASE}/src/bsm_input_maker/input/">
 <flags ldflags="-L/usr/lib -lprotobuf">
