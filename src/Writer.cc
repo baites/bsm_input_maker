@@ -71,6 +71,15 @@ bool Writer::write(const Event &event)
     return true;
 }
 
+Writer::InputPtr Writer::input() const
+{
+    return _input;
+}
+
+
+
+// Privates
+//
 void Writer::write(const string &message)
 {
     _coded_out->WriteVarint32(message.size());
@@ -119,6 +128,8 @@ void Writer::close()
     _coded_out.reset();
     _raw_out.reset();
     _std_out.close();
+
+    _input->set_events(0);
 }
 
 string Writer::filename()

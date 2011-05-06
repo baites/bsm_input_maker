@@ -17,6 +17,7 @@
 #include "interface/Reader.h"
 
 using bsm::Event;
+using bsm::Input;
 using bsm::Jet;
 using bsm::LorentzVector;
 using bsm::Muon;
@@ -125,6 +126,18 @@ try
         h_muon_pz->GetXaxis()->SetTitle("PZ_{MUON} [GeV/c]");
 
         boost::shared_ptr<Reader> reader(new Reader(argv[1]));
+        if (reader->input()->has_type())
+        {
+            switch(reader->input()->type())
+            {
+                case Input::DATA: cout << " DATA input" << endl;
+                                  break;
+
+                default: cout << " Unknown Input" << endl;
+                         break;
+            }
+        }
+
         cout << "Start reading events: " << reader->input()->events() << endl;
 
         uint32_t events_read = 0;

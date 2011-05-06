@@ -12,9 +12,11 @@
 #include <TRandom3.h>
 
 #include "interface/Event.pb.h"
+#include "interface/Input.pb.h"
 #include "interface/Writer.h"
 
 using bsm::Event;
+using bsm::Input;
 using bsm::Jet;
 using bsm::LorentzVector;
 using bsm::Muon;
@@ -51,6 +53,8 @@ try
         }
         else
             writer.reset(new Writer(argv[1]));
+
+        writer->input()->set_type(Input::DATA);
 
         boost::shared_ptr<Event> event(new Event());
         boost::shared_ptr<TRandom> randomizer(new TRandom3());

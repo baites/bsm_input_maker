@@ -27,6 +27,8 @@ namespace bsm
     class Writer
     {
         public:
+            typedef boost::shared_ptr<Input> InputPtr;
+
             Writer(const std::string &output_file,
                     // Filesize is in KB
                     //
@@ -34,6 +36,8 @@ namespace bsm
             virtual ~Writer();
 
             virtual bool write(const Event &);
+
+            InputPtr input() const;
 
         private:
             // Physical write to the file
@@ -60,7 +64,7 @@ namespace bsm
             boost::shared_ptr<ZeroCopyOutputStream> _raw_out;
             boost::shared_ptr<CodedOutputStream> _coded_out;
 
-            boost::shared_ptr<Input> _input;
+            InputPtr _input;
     };
 }
 
