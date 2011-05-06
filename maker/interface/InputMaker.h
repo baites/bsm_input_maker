@@ -42,6 +42,8 @@ namespace bsm
             std::string _primary_vertices_tag;
             std::string _missing_energies;
 
+            std::string _input_type;
+
             boost::shared_ptr<Writer> _writer;
             boost::shared_ptr<Event> _event;
     };

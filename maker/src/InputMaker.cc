@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 
+#include <boost/algorithm/string.hpp>
+
 #include "DataFormats/PatCandidates/interface/Jet.h"
 #include "DataFormats/PatCandidates/interface/Electron.h"
 #include "DataFormats/PatCandidates/interface/MET.h"
@@ -19,6 +21,7 @@
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 
 #include "bsm_input_maker/input/interface/Event.pb.h"
+#include "bsm_input_maker/input/interface/Input.pb.h"
 #include "bsm_input_maker/input/interface/Writer.h"
 #include "bsm_input_maker/maker/interface/Selector.h"
 #include "bsm_input_maker/maker/interface/Utility.h"
@@ -27,6 +30,8 @@
 
 using std::string;
 using std::vector;
+
+using boost::to_lower;
 
 using edm::Handle;
 using edm::InputTag;
@@ -50,6 +55,42 @@ InputMaker::InputMaker(const ParameterSet &config)
     _muons_tag = config.getParameter<string>("muons");
     _primary_vertices_tag = config.getParameter<string>("primary_vertices");
     _missing_energies = config.getParameter<string>("missing_energies");
+
+    _input_type = config.getParameter<string>("input_type");
+    to_lower(_input_type);
+
+    Input::Type type(Input::UNKNOWN);
+    if ("data" == _input_type)
+        type = Input::DATA;
+
+    else if ("ttbar" == _input_type)
+        type = Input::TTBAR;
+
+    else if ("qcd" == _input_type)
+        type = Input::QCD;
+
+    else if ("wjets" == _input_type)
+        type = Input::WJETS;
+
+    else if ("zjets" == _input_type)
+        type = Input::ZJETS;
+
+    else if ("vqq" == _input_type)
+        type = Input::VQQ;
+
+    else if ("single_top_t_channel" == _input_type)
+        type = Input::SINGLE_TOP_T_CHANNEL;
+
+    else if ("single_top_s_channel" == _input_type)
+        type = Input::SINGLE_TOP_S_CHANNEL;
+
+    else if ("single_top_tw_channel" == _input_type)
+        type = Input::SINGLE_TOP_TW_CHANNEL;
+
+    else if ("wc" == _input_type)
+        type = Input::WC;
+
+    _writer->input()->set_type(type);
 }
 
 InputMaker::~InputMaker()
@@ -117,11 +158,17 @@ void InputMaker::jets(const edm::Event &event)
             continue;
 
         const reco::GenParticle *parton = jet->genParton();
-        utility::set(pb_jet->mutable_gen_parton()->mutable_physics_object()->mutable_p4(),
+        bsm::GenParticle *pb_gen_particle = pb_jet->mutable_gen_parton();
+
+        utility::set(pb_gen_particle->mutable_physics_object()->mutable_p4(),
                 &parton->p4());
 
-        utility::set(pb_jet->mutable_gen_parton()->mutable_physics_object()->mutable_vertex(),
+        utility::set(pb_gen_particle->mutable_physics_object()->mutable_vertex(),
                 &parton->vertex());
+
+        pb_gen_particle->set_id(parton->pdgId());
+        pb_gen_particle->set_status(parton->status());
+
     }
 }
 
