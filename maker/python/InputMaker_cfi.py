@@ -1,5 +1,9 @@
 import FWCore.ParameterSet.Config as cms
 
+from PhysicsTools.SelectorUtils.pfElectronSelector_cfi import pfElectronSelector
+from PhysicsTools.SelectorUtils.pfJetIDSelector_cfi import pfJetIDSelector
+from PhysicsTools.SelectorUtils.pfMuonSelector_cfi import pfMuonSelector
+
 InputMaker = cms.EDAnalyzer(
     'InputMaker',
     fileName = cms.string("input.pb"),
@@ -10,5 +14,9 @@ InputMaker = cms.EDAnalyzer(
     primary_vertices = cms.string("offlinePrimaryVertices"),
     missing_energies = cms.string("patMETsPFlow"),
 
-    input_type = cms.string("unknown")
+    input_type = cms.string("unknown"),
+
+    electron_selector = pfElectronSelector.clone(),
+    jet_selector = pfJetIDSelector.clone(),
+    muon_selector = pfMuonSelector.clone()
 )
