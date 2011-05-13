@@ -11,9 +11,9 @@
 
 #include <TRandom3.h>
 
-#include "interface/Event.pb.h"
-#include "interface/Input.pb.h"
-#include "interface/Writer.h"
+#include "bsm_input/interface/Event.pb.h"
+#include "bsm_input/interface/Input.pb.h"
+#include "bsm_input/interface/Writer.h"
 
 using bsm::Event;
 using bsm::Input;

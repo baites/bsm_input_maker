@@ -12,9 +12,9 @@
 #include <TH1F.h>
 #include <TRint.h>
 
-#include "interface/Event.pb.h"
-#include "interface/Input.pb.h"
-#include "interface/Reader.h"
+#include "bsm_input/interface/Event.pb.h"
+#include "bsm_input/interface/Input.pb.h"
+#include "bsm_input/interface/Reader.h"
 
 using bsm::Event;
 using bsm::Input;
