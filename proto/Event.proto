@@ -16,12 +16,14 @@ package bsm;
 message Event
 {
     repeated PrimaryVertex primary_vertices = 1;
-    repeated Muon muons = 2;
-    optional MissingEnergy missing_energy = 3;
+    optional MissingEnergy missing_energy = 2;
 
-    repeated PFJet pf_jets = 4;
-    repeated CaloJet calo_jets = 5;
+    // PF Jets
+    repeated Jet jets = 3;
 
-    repeated Electron pf_electrons = 6;
-    repeated Electron gsf_electrons = 7;
+    repeated Electron pf_electrons = 4;
+    repeated Electron gsf_electrons = 5;
+
+    repeated Muon pf_muons = 6;
+    repeated Muon reco_muons = 7;
 }

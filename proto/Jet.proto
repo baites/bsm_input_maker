@@ -8,7 +8,7 @@ import "GenParticle.proto";
 
 package bsm;
 
-message PFJet
+message Jet
 {
     message EnergyFraction
     {
@@ -19,20 +19,5 @@ message PFJet
 
     required PhysicsObject physics_object = 1;
     optional GenParticle gen_parton = 2;
-    optional EnergyFraction energy_fraction = 3;
-}
-
-message CaloJet
-{
-    message EnergyFraction
-    {
-        optional double electron = 1;
-        optional double hadron = 2;
-        optional double n90 = 3;
-        optional double n60 = 4;
-    }
-
-    required PhysicsObject physics_object = 1;
-    optional GenParticle gen_particle = 2;
     optional EnergyFraction energy_fraction = 3;
 }
