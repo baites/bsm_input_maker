@@ -33,14 +33,24 @@ namespace bsm
             virtual void endJob();
 
             void jets(const edm::Event &);
-            void electrons(const edm::Event &);
-            void muons(const edm::Event &);
+
+            void pf_electrons(const edm::Event &);
+            void gsf_electrons(const edm::Event &);
+
+            void pf_muons(const edm::Event &);
+            void reco_muons(const edm::Event &);
+
             void primaryVertices(const edm::Event &);
             void met(const edm::Event &);
 
             std::string _jets_tag;
-            std::string _electrons_tag;
-            std::string _muons_tag;
+
+            std::string _pf_electrons_tag;
+            std::string _gsf_electrons_tag;
+
+            std::string _pf_muons_tag;
+            std::string _reco_muons_tag;
+
             std::string _primary_vertices_tag;
             std::string _missing_energies;
 

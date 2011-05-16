@@ -5,9 +5,14 @@ InputMaker = cms.EDAnalyzer(
     fileName = cms.string("input.pb"),
 
     jets = cms.string("goodPatJetsPFlow"),
-    electrons = cms.string("selectedPatElectronsLoosePFlow"),
-    muons = cms.string("selectedPatMuonsLoosePFlow"),
-    primary_vertices = cms.string("offlinePrimaryVertices"),
+
+    pf_electrons = cms.string("selectedPatElectronsLoosePFlow"),
+    gsf_electrons = cms.string("selectedPatElectrons"),
+
+    pf_muons = cms.string("selectedPatMuonsLoosePFlow"),
+    reco_muons = cms.string("selectedPtMuons"),
+
+    primary_vertices = cms.string("goodOfflinePrimaryVertices"),
     missing_energies = cms.string("patMETsPFlow"),
 
     input_type = cms.string("unknown")
