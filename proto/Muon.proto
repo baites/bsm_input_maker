@@ -4,10 +4,21 @@
 // Copyright 2011, All rights reserved
 
 import "Physics.proto";
+import "Isolation.proto";
+import "Track.proto";
 
 package bsm;
 
 message Muon
 {
     required PhysicsObject physics_object = 1;
+
+    optional Isolation isolation = 2;
+    optional bool is_global = 3;
+    optional bool is_tracker = 4;
+    optional Track inner_track = 5;
+    optional Track global_track = 6;
+    optional double d0_bsp = 7;
+    optional double pixel_hits = 8;
+    optional double number_of_matches = 9;
 }

@@ -1,0 +1,13 @@
+// Leptons isolation
+//
+// Created by Samvel Khalatyan, May 16, 2011
+// Copyright 2011, All rights reserved
+
+package bsm;
+
+message Isolation
+{
+    optional double track = 1;
+    optional double ecal = 2;
+    optional double hcal = 3;
+}
