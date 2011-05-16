@@ -91,10 +91,6 @@ InputMaker::InputMaker(const ParameterSet &config)
         type = Input::WC;
 
     _writer->input()->set_type(type);
-
-    _jet_selector = config.getParameter<ParameterSet>("jet_selector");
-    _electron_selector = config.getParameter<ParameterSet>("electron_selector");
-    _muon_selector = config.getParameter<ParameterSet>("muon_selector");
 }
 
 InputMaker::~InputMaker()
@@ -149,9 +145,6 @@ void InputMaker::jets(const edm::Event &event)
             jets->end() != jet;
             ++jet)
     {
-        if (!_jet_selector(*jet))
-            continue;
-
         bsm::Jet *pb_jet = _event->add_jets();
 
         utility::set(pb_jet->mutable_physics_object()->mutable_p4(),
@@ -197,9 +190,6 @@ void InputMaker::electrons(const edm::Event &event)
             electrons->end() != electron;
             ++electron)
     {
-        if (!_electron_selector(*electron))
-            continue;
-
         bsm::Electron *pb_electron = _event->add_electrons();
 
         utility::set(pb_electron->mutable_physics_object()->mutable_p4(),
@@ -227,9 +217,6 @@ void InputMaker::muons(const edm::Event &event)
             muons->end() != muon;
             ++muon)
     {
-        if (!_muon_selector(*muon))
-            continue;
-
         bsm::Muon *pb_muon = _event->add_muons();
 
         utility::set(pb_muon->mutable_physics_object()->mutable_p4(),

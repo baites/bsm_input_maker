@@ -13,9 +13,6 @@
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDAnalyzer.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
-#include "PhysicsTools/SelectorUtils/interface/PFJetIDSelectionFunctor.h"
-#include "PhysicsTools/SelectorUtils/interface/PFMuonSelector.h"
-#include "PhysicsTools/SelectorUtils/interface/PFElectronSelector.h"
 
 class PFJetIDSelectionFunctor;
 
@@ -51,10 +48,6 @@ namespace bsm
 
             boost::shared_ptr<Writer> _writer;
             boost::shared_ptr<Event> _event;
-
-            PFElectronSelector _electron_selector;
-            PFJetIDSelectionFunctor _jet_selector;
-            PFMuonSelector _muon_selector;
     };
 }
 

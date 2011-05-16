@@ -9,7 +9,6 @@
 <use name=FWCore/ParameterSet>
 <use name=FWCore/ServiceRegistry>
 <use name=FWCore/Utilities>
-<use name=PhysicsTools/SelectorUtils>
 <use name=bsm_input_maker/bsm_input>
 
 <flags CXXFLAGS="-I${CMSSW_BASE}/src/bsm_input_maker/bsm_input/interface">

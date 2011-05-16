@@ -8,7 +8,6 @@
 <use   name="FWCore/ParameterSet"/>
 <use   name="FWCore/ServiceRegistry"/>
 <use   name="FWCore/Utilities"/>
-<use   name="PhysicsTools/SelectorUtils"/>
 <use   name="bsm_input_maker/input"/>
 <flags   CXXFLAGS="-I${CMSSW_BASE}/src/bsm_input_maker/input/interface"/>
 <flags   LDFLAGS="-lbsm_input_makerbsm_input -L/usr/lib -lprotobuf"/>
