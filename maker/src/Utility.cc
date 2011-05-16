@@ -3,7 +3,7 @@
 // Created by Samvel Khalatyan, Apr 21, 2011
 // Copyright 2011, All rights reserved
 
-#include "bsm_input_maker/input/interface/Physics.pb.h"
+#include "bsm_input_maker/bsm_input/interface/Physics.pb.h"
 
 #include "bsm_input_maker/maker/interface/Utility.h"
 

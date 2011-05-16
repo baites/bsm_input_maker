@@ -20,9 +20,9 @@
 #include "FWCore/Utilities/interface/InputTag.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 
-#include "bsm_input_maker/input/interface/Event.pb.h"
-#include "bsm_input_maker/input/interface/Input.pb.h"
-#include "bsm_input_maker/input/interface/Writer.h"
+#include "bsm_input_maker/bsm_input/interface/Event.pb.h"
+#include "bsm_input_maker/bsm_input/interface/Input.pb.h"
+#include "bsm_input_maker/bsm_input/interface/Writer.h"
 #include "bsm_input_maker/maker/interface/Selector.h"
 #include "bsm_input_maker/maker/interface/Utility.h"
 

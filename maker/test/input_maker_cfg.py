@@ -34,7 +34,8 @@ process.options = cms.untracked.PSet(
 
 #-- Analysis ------------------------------------------------------------------
 process.load("bsm_input_maker.maker.InputMaker_cfi")
-process.InputMaker.input_type = cms.string("ttbar");
+process.InputMaker.input_type = cms.string("ttbar")
+#process.InputMaker.primary_vertices = cms.string("goodOfflinePrimaryVertices")
 
 process.p = cms.Path(
     process.InputMaker
