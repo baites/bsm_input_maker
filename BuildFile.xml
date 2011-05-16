@@ -1,6 +1,6 @@
 <use   name="root"/>
 <use   name="boost"/>
 <use   name="boost_system"/>
-<flags   cxxflags="-I${CMSSW_BASE}/src/bsm_input_maker/input/interface -I${CMSSW_BASE}/src/bsm_input_maker/input/"/>
+<flags   cxxflags="-I${CMSSW_BASE}/src/bsm_input_maker/bsm_input/message -I${CMSSW_BASE}/src/bsm_input_maker/"/>
 <flags   ldflags="-L/usr/lib -lprotobuf"/>
 <flags   skip_files="read.cpp write.cpp"/>
