@@ -10,10 +10,15 @@ package bsm;
 
 message Electron
 {
+    message Extra
+    {
+        optional double d0_bsp = 1;
+        optional double super_cluster_eta = 2;
+        optional uint32 inner_track_expected_hits = 3;
+    }
+
     required PhysicsObject physics_object = 1;
 
     optional Isolation isolation = 2;
-    optional double d0_bsp = 3;
-    optional double super_cluster_eta = 4;
-    optional double inner_track_expected_hits = 5;
+    optional Extra extra = 3;
 }

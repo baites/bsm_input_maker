@@ -9,5 +9,5 @@ package bsm;
 
 message MissingEnergy
 {
-    required PhysicsObject physics_object = 1;
+    required LorentzVector p4 = 1;
 }
