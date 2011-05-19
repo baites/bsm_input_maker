@@ -2,7 +2,7 @@ CCC      = g++
 
 # Subsystems that have compilable libraries
 SUBSYS   = 
-LIB      = libbsm_input.so.1.0
+LIB      = libbsm_input.so.1.1
 
 # Get list of all heads, sources and objects. Each source (%.cc) whould have
 # an object file except programs listed in PROGS
