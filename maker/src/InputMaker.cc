@@ -120,8 +120,6 @@ void InputMaker::beginJob()
 void InputMaker::analyze(const edm::Event &event,
                         const edm::EventSetup &setup)
 {
-    _event->Clear();
-
     jets(event);
 
     pf_electrons(event);
@@ -134,6 +132,8 @@ void InputMaker::analyze(const edm::Event &event,
     met(event);
 
     _writer->write(*_event);
+
+    _event->Clear();
 }
 
 void InputMaker::endJob()
@@ -170,6 +170,11 @@ void InputMaker::jets(const edm::Event &event)
         utility::set(pb_jet->mutable_physics_object()->mutable_vertex(),
             &jet->vertex());
 
+        bsm::Jet::EnergyFraction *pb_energy = pb_jet->mutable_energy_fraction();
+        pb_energy->set_electron(jet->electronEnergy());
+        pb_energy->set_muon(jet->muonEnergy());
+        pb_energy->set_photon(jet->photonEnergy());
+
         // Skip the rest if Generator Parton is not found for the jet
         //
         if (!jet->genParton())
@@ -186,7 +191,6 @@ void InputMaker::jets(const edm::Event &event)
 
         pb_gen_particle->set_id(parton->pdgId());
         pb_gen_particle->set_status(parton->status());
-
     }
 }
 
@@ -290,8 +294,8 @@ void InputMaker::pf_muons(const edm::Event &event)
         if (muon->isGlobalMuon())
         {
             bsm::Track *track = pb_muon->mutable_global_track();
-            track->set_hits(muon->globalTrack()->normalizedChi2());
-            track->set_normalized_chi2(muon->globalTrack()->hitPattern().numberOfValidMuonHits());
+            track->set_hits(muon->globalTrack()->hitPattern().numberOfValidMuonHits());
+            track->set_normalized_chi2(muon->globalTrack()->normalizedChi2());
         }
 
         pb_muon->set_d0_bsp(muon->dB());
