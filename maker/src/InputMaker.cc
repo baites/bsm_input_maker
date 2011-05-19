@@ -142,6 +142,9 @@ void InputMaker::endJob()
 
 void InputMaker::jets(const edm::Event &event)
 {
+    if (_jets_tag.empty())
+        return;
+
     using pat::JetCollection;
 
     Handle<JetCollection> jets;
@@ -170,7 +173,7 @@ void InputMaker::jets(const edm::Event &event)
         utility::set(pb_jet->mutable_physics_object()->mutable_vertex(),
             &jet->vertex());
 
-        bsm::Jet::EnergyFraction *pb_energy = pb_jet->mutable_energy_fraction();
+        bsm::Jet::Energy *pb_energy = pb_jet->mutable_energy();
         pb_energy->set_electron(jet->electronEnergy());
         pb_energy->set_muon(jet->muonEnergy());
         pb_energy->set_photon(jet->photonEnergy());
@@ -206,7 +209,7 @@ void InputMaker::pf_electrons(const edm::Event &event)
 
     if (!electrons.isValid())
     {
-        LogWarning("InputMaker") << "failed to extract electrons";
+        LogWarning("InputMaker") << "failed to extract PF electrons";
 
         return;
     }
@@ -222,19 +225,7 @@ void InputMaker::pf_electrons(const edm::Event &event)
 
         bsm::Electron *pb_electron = _event->add_pf_electrons();
 
-        utility::set(pb_electron->mutable_physics_object()->mutable_p4(),
-                &electron->p4());
-        utility::set(pb_electron->mutable_physics_object()->mutable_vertex(),
-                &electron->vertex());
-
-        bsm::Isolation *pb_isolation = pb_electron->mutable_isolation();
-        pb_isolation->set_track(electron->dr03TkSumPt());
-        pb_isolation->set_ecal(electron->dr03EcalRecHitSumEt());
-        pb_isolation->set_hcal(electron->dr03HcalTowerSumEt());
-
-        pb_electron->set_d0_bsp(electron->dB());
-        pb_electron->set_super_cluster_eta(electron->superCluster()->eta());
-        pb_electron->set_inner_track_expected_hits(electron->gsfTrack()->trackerExpectedHitsInner().numberOfHits());
+        fill(pb_electron, &*electron);
     }
 }
 
@@ -243,7 +234,31 @@ void InputMaker::gsf_electrons(const edm::Event &event)
     if (_gsf_electrons_tag.empty())
         return;
 
-    return;
+    using pat::ElectronCollection;
+
+    Handle<ElectronCollection> electrons;
+    event.getByLabel(InputTag(_gsf_electrons_tag), electrons);
+
+    if (!electrons.isValid())
+    {
+        LogWarning("InputMaker") << "failed to extract GSF electrons";
+
+        return;
+    }
+
+    for(ElectronCollection::const_iterator electron = electrons->begin();
+            electrons->end() != electron;
+            ++electron)
+    {
+        SimpleCutBasedElectronIDSelectionFunctor electronID(SimpleCutBasedElectronIDSelectionFunctor::cIso70);
+
+        if (!electronID(*electron))
+            continue;
+
+        bsm::Electron *pb_electron = _event->add_gsf_electrons();
+
+        fill(pb_electron, &*electron);
+    }
 }
 
 void InputMaker::pf_muons(const edm::Event &event)
@@ -258,7 +273,7 @@ void InputMaker::pf_muons(const edm::Event &event)
 
     if (!muons.isValid())
     {
-        LogWarning("InputMaker") << "failed to extract muons";
+        LogWarning("InputMaker") << "failed to extract PF muons";
 
         return;
     }
@@ -269,37 +284,7 @@ void InputMaker::pf_muons(const edm::Event &event)
     {
         bsm::Muon *pb_muon = _event->add_pf_muons();
 
-        utility::set(pb_muon->mutable_physics_object()->mutable_p4(),
-                &muon->p4());
-        utility::set(pb_muon->mutable_physics_object()->mutable_vertex(),
-                &muon->vertex());
-
-        bsm::Isolation *pb_isolation = pb_muon->mutable_isolation();
-
-        pb_muon->set_is_global(muon->isGlobalMuon());
-        pb_muon->set_is_tracker(muon->isTrackerMuon());
-
-        pb_isolation->set_track(muon->trackIso());
-        pb_isolation->set_ecal(muon->ecalIso());
-        pb_isolation->set_hcal(muon->hcalIso());
-
-        if (muon->isTrackerMuon())
-        {
-            bsm::Track *track = pb_muon->mutable_inner_track();
-            track->set_hits(muon->innerTrack()->numberOfValidHits());
-            track->set_normalized_chi2(muon->innerTrack()->normalizedChi2());
-            pb_muon->set_pixel_hits(muon->innerTrack()->hitPattern().pixelLayersWithMeasurement());
-        }
-
-        if (muon->isGlobalMuon())
-        {
-            bsm::Track *track = pb_muon->mutable_global_track();
-            track->set_hits(muon->globalTrack()->hitPattern().numberOfValidMuonHits());
-            track->set_normalized_chi2(muon->globalTrack()->normalizedChi2());
-        }
-
-        pb_muon->set_d0_bsp(muon->dB());
-        pb_muon->set_number_of_matches(muon->numberOfMatches());
+        fill(pb_muon, &*muon);
     }
 }
 
@@ -308,7 +293,26 @@ void InputMaker::reco_muons(const edm::Event &event)
     if (_reco_muons_tag.empty())
         return;
 
-    return;
+    using pat::MuonCollection;
+
+    Handle<MuonCollection> muons;
+    event.getByLabel(InputTag(_reco_muons_tag), muons);
+
+    if (!muons.isValid())
+    {
+        LogWarning("InputMaker") << "failed to extract RECO muons";
+
+        return;
+    }
+
+    for(MuonCollection::const_iterator muon = muons->begin();
+            muons->end() != muon;
+            ++muon)
+    {
+        bsm::Muon *pb_muon = _event->add_reco_muons();
+
+        fill(pb_muon, &*muon);
+    }
 }
 
 void InputMaker::primaryVertices(const edm::Event &event)
@@ -361,10 +365,61 @@ void InputMaker::met(const edm::Event &event)
 
     bsm::MissingEnergy *pb_met = _event->mutable_missing_energy();
 
-    utility::set(pb_met->mutable_physics_object()->mutable_p4(),
+    utility::set(pb_met->mutable_p4(),
             &mets->begin()->p4());
-    utility::set(pb_met->mutable_physics_object()->mutable_vertex(),
-            &mets->begin()->vertex());
+}
+
+void InputMaker::fill(bsm::Electron *pb_electron, const pat::Electron *electron)
+{
+    utility::set(pb_electron->mutable_physics_object()->mutable_p4(),
+            &electron->p4());
+    utility::set(pb_electron->mutable_physics_object()->mutable_vertex(),
+            &electron->vertex());
+
+    bsm::Isolation *pb_isolation = pb_electron->mutable_isolation();
+    pb_isolation->set_track(electron->dr03TkSumPt());
+    pb_isolation->set_ecal(electron->dr03EcalRecHitSumEt());
+    pb_isolation->set_hcal(electron->dr03HcalTowerSumEt());
+
+    bsm::Electron::Extra *extra = pb_electron->mutable_extra();
+    extra->set_d0_bsp(electron->dB());
+    extra->set_super_cluster_eta(electron->superCluster()->eta());
+    extra->set_inner_track_expected_hits(electron->gsfTrack()->trackerExpectedHitsInner().numberOfHits());
+}
+
+void InputMaker::fill(bsm::Muon *pb_muon, const pat::Muon *muon)
+{
+    utility::set(pb_muon->mutable_physics_object()->mutable_p4(),
+            &muon->p4());
+    utility::set(pb_muon->mutable_physics_object()->mutable_vertex(),
+            &muon->vertex());
+
+    bsm::Isolation *pb_isolation = pb_muon->mutable_isolation();
+    pb_isolation->set_track(muon->trackIso());
+    pb_isolation->set_ecal(muon->ecalIso());
+    pb_isolation->set_hcal(muon->hcalIso());
+
+    bsm::Muon::Extra *extra = pb_muon->mutable_extra();
+    extra->set_is_global(muon->isGlobalMuon());
+    extra->set_is_tracker(muon->isTrackerMuon());
+    extra->set_d0_bsp(muon->dB());
+    extra->set_number_of_matches(muon->numberOfMatches());
+
+    if (muon->isTrackerMuon())
+    {
+        bsm::Track *track = pb_muon->mutable_inner_track();
+        track->set_hits(muon->innerTrack()->numberOfValidHits());
+        track->set_normalized_chi2(muon->innerTrack()->normalizedChi2());
+
+        extra->set_pixel_hits(muon->innerTrack()->hitPattern().pixelLayersWithMeasurement());
+    }
+
+    if (muon->isGlobalMuon())
+    {
+        bsm::Track *track = pb_muon->mutable_global_track();
+        track->set_hits(muon->globalTrack()->hitPattern().numberOfValidMuonHits());
+        track->set_normalized_chi2(muon->globalTrack()->normalizedChi2());
+    }
 }
 
 DEFINE_FWK_MODULE(InputMaker);

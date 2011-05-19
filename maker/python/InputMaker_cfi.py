@@ -10,7 +10,7 @@ InputMaker = cms.EDAnalyzer(
     gsf_electrons = cms.string("selectedPatElectrons"),
 
     pf_muons = cms.string("selectedPatMuonsLoosePFlow"),
-    reco_muons = cms.string("selectedPtMuons"),
+    reco_muons = cms.string("selectedPatMuons"),
 
     primary_vertices = cms.string("goodOfflinePrimaryVertices"),
     missing_energies = cms.string("patMETsPFlow"),

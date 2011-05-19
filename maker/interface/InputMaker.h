@@ -16,9 +16,17 @@
 
 class PFJetIDSelectionFunctor;
 
+namespace pat
+{
+    class Electron;
+    class Muon;
+}
+
 namespace bsm
 {
+    class Electron;
     class Event;
+    class Muon;
     class Writer;
 
     class InputMaker: public edm:: EDAnalyzer
@@ -42,6 +50,9 @@ namespace bsm
 
             void primaryVertices(const edm::Event &);
             void met(const edm::Event &);
+
+            void fill(bsm::Electron *, const pat::Electron *);
+            void fill(bsm::Muon *, const pat::Muon *);
 
             std::string _jets_tag;
 
