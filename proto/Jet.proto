@@ -10,14 +10,14 @@ package bsm;
 
 message Jet
 {
-    message EnergyFraction
+    message Energy
     {
         optional double electron = 1;
-        optional double hadron = 2;
+        optional double muon = 2;
         optional double photon = 3;
     }
 
     required PhysicsObject physics_object = 1;
     optional GenParticle gen_parton = 2;
-    optional EnergyFraction energy_fraction = 3;
+    optional Energy energy = 3;
 }
