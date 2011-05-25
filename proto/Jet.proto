@@ -17,6 +17,13 @@ message Jet
         optional double photon = 3;
     }
 
+    message Extra
+    {
+        optional uint32 constituents = 1;
+        optional uint32 n90hits = 2;
+        optional double hpd = 3;
+    }
+
     required PhysicsObject physics_object = 1;
     optional GenParticle gen_parton = 2;
     optional Energy energy = 3;
