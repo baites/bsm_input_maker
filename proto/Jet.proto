@@ -20,8 +20,8 @@ message Jet
     message Extra
     {
         optional uint32 constituents = 1;
-        optional uint32 n90hits = 1;
-        optional double hpd = 2;
+        optional uint32 n90hits = 2;
+        optional double hpd = 3;
     }
 
     required PhysicsObject physics_object = 1;
