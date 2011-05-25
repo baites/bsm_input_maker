@@ -27,6 +27,7 @@ using std::runtime_error;
 using bsm::Reader;
 
 Reader::Reader(const string &input):
+    _filename(input),
     _std_in(input.c_str(),
             ios::in | ios::binary),
     _is_good(true),
@@ -123,6 +124,11 @@ bool Reader::skip()
     ++_current_event;
 
     return true;
+}
+
+std::string Reader::filename() const
+{
+    return _filename;
 }
 
 bool Reader::read(std::string &message)

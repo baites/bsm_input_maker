@@ -36,9 +36,12 @@ namespace bsm
             virtual bool read(Event &);
             virtual bool skip();
 
+            virtual std::string filename() const;
+
         private:
             bool read(std::string &);
 
+            std::string _filename;
             std::fstream _std_in;
             
             typedef ::google::protobuf::io::ZeroCopyInputStream
