@@ -35,9 +35,11 @@ namespace bsm
                     const uint32_t &file_size = 10000);
             virtual ~Writer();
 
+            virtual const InputPtr input() const;
+
             virtual bool write(const Event &);
 
-            InputPtr input() const;
+            virtual std::string filename() const;
 
         private:
             // Physical write to the file
@@ -47,10 +49,11 @@ namespace bsm
             void open();
             void close();
 
-            std::string filename();
+            void generateFilename();
 
             std::fstream _std_out;
             fs::path _path;
+            std::string _filename;
             const int _file_size;
 
             uint32_t _file_number;

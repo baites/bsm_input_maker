@@ -52,6 +52,11 @@ Writer::~Writer()
     close();
 }
 
+const Writer::InputPtr Writer::input() const
+{
+    return _input;
+}
+
 bool Writer::write(const Event &event)
 {
     if (_file_size < _coded_out->ByteCount() / 1000)
@@ -71,9 +76,9 @@ bool Writer::write(const Event &event)
     return true;
 }
 
-Writer::InputPtr Writer::input() const
+std::string Writer::filename() const
 {
-    return _input;
+    return _filename;
 }
 
 
@@ -88,6 +93,8 @@ void Writer::write(const string &message)
 
 void Writer::open()
 {
+    generateFilename();
+
     _std_out.open(filename().c_str(), ios::out | ios::trunc | ios::binary);
     ++_file_number;
 
@@ -132,7 +139,7 @@ void Writer::close()
     _input->set_events(0);
 }
 
-string Writer::filename()
+void Writer::generateFilename()
 {
     ostringstream file_name;
 
@@ -144,5 +151,5 @@ string Writer::filename()
     file_name << _path.stem() << "_"
         << _file_number << _path.extension();
 
-    return file_name.str();
+    _filename = file_name.str();
 }
