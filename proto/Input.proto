@@ -6,6 +6,8 @@
 // Created by Samvel Khalatyan, Apr 19, 2011
 // Copyright 2011, All rights reserved
 
+import "Trigger.proto";
+
 package bsm;
 
 message Info
@@ -13,6 +15,8 @@ message Info
     optional double xsection = 1;
     optional double luminosity = 2;
     optional double filter_efficiency = 3;
+
+    repeated TriggerItem triggers = 4;
 }
 
 message Input
