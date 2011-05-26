@@ -7,7 +7,11 @@
 #include <vector>
 
 #include <boost/algorithm/string.hpp>
+#include <boost/regex.hpp>
+#include <boost/lexical_cast.hpp>
 
+#include "CommonTools/UtilAlgos/interface/TFileService.h"
+#include "DataFormats/Common/interface/TriggerResults.h"
 #include "DataFormats/PatCandidates/interface/Jet.h"
 #include "DataFormats/PatCandidates/interface/Electron.h"
 #include "DataFormats/PatCandidates/interface/MET.h"
@@ -18,13 +22,14 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "FWCore/Utilities/interface/InputTag.h"
-#include "CommonTools/UtilAlgos/interface/TFileService.h"
+#include "HLTrigger/HLTcore/interface/HLTConfigProvider.h"
 #include "PhysicsTools/SelectorUtils/interface/SimpleCutBasedElectronIDSelectionFunctor.h"
 
 #include "bsm_input_maker/bsm_input/interface/Event.pb.h"
 #include "bsm_input_maker/bsm_input/interface/Input.pb.h"
 #include "bsm_input_maker/bsm_input/interface/Isolation.pb.h"
 #include "bsm_input_maker/bsm_input/interface/Track.pb.h"
+#include "bsm_input_maker/bsm_input/interface/Trigger.pb.h"
 #include "bsm_input_maker/bsm_input/interface/Writer.h"
 #include "bsm_input_maker/maker/interface/Selector.h"
 #include "bsm_input_maker/maker/interface/Utility.h"
@@ -34,6 +39,9 @@
 using std::string;
 using std::vector;
 
+using boost::lexical_cast;
+using boost::regex;
+using boost::smatch;
 using boost::to_lower;
 
 using edm::Handle;
@@ -41,6 +49,7 @@ using edm::InputTag;
 using edm::LogInfo;
 using edm::LogWarning;
 using edm::ParameterSet;
+using edm::TriggerResults;
 
 using reco::Vertex;
 
@@ -62,7 +71,9 @@ InputMaker::InputMaker(const ParameterSet &config)
     _reco_muons_tag = config.getParameter<string>("reco_muons");
 
     _primary_vertices_tag = config.getParameter<string>("primary_vertices");
-    _missing_energies = config.getParameter<string>("missing_energies");
+    _missing_energies_tag = config.getParameter<string>("missing_energies");
+
+    _hlts_tag = config.getParameter<string>("hlts");
 
     _input_type = config.getParameter<string>("input_type");
     to_lower(_input_type);
@@ -115,6 +126,61 @@ InputMaker::~InputMaker()
 //
 void InputMaker::beginJob()
 {
+}
+
+void InputMaker::beginRun(const edm::Run &run,
+        const edm::EventSetup &setup)
+{
+    bool is_changed = true;
+
+    _hlt_config.reset(new HLTConfigProvider());
+    if (!_hlt_config->init(run, setup, InputTag(_hlts_tag).process(),
+                is_changed))
+    {
+        _hlt_config.reset();
+        _hlts.clear();
+
+        return;
+    }
+
+    if (!is_changed
+            && !_hlts.empty())
+        return;
+
+    // HLT Config has changed
+    //
+    _hlts.clear();
+
+    typedef std::vector<std::string> CMSSW_Triggers;
+
+    // Get list of trigger names
+    //
+    const CMSSW_Triggers &triggers = _hlt_config->triggerNames();
+    uint32_t cmssw_id = 0;
+    boost::hash<std::string> make_hash;
+    for(CMSSW_Triggers::const_iterator trigger = triggers.begin();
+            triggers.end() != trigger;
+            ++trigger, ++cmssw_id)
+    {
+        smatch matches;
+        if (!regex_match(*trigger, matches, regex("^(\\w+?)(?:_[vV](\\d+))?$")))
+        {
+            // Didn't understand the trigger name
+            //
+
+            continue;
+        }
+
+        Trigger obj;
+
+        obj.name = *trigger;
+        obj.hash = make_hash(obj.name);
+        obj.version = matches[2].matched
+            ? lexical_cast<uint32_t>(matches[2])
+            : 1;
+
+        _hlts[cmssw_id] = obj;
+    }
 }
 
 void InputMaker::analyze(const edm::Event &event,
@@ -317,6 +383,9 @@ void InputMaker::reco_muons(const edm::Event &event)
 
 void InputMaker::primaryVertices(const edm::Event &event)
 {
+    if (_primary_vertices_tag.empty())
+        return;
+
     typedef vector<Vertex> PVCollection;
 
     Handle<PVCollection> primary_vertices;
@@ -344,10 +413,13 @@ void InputMaker::primaryVertices(const edm::Event &event)
 
 void InputMaker::met(const edm::Event &event)
 {
+    if (_missing_energies_tag.empty())
+        return;
+
     using pat::METCollection;
 
     Handle<METCollection> mets;
-    event.getByLabel(InputTag(_missing_energies), mets);
+    event.getByLabel(InputTag(_missing_energies_tag), mets);
 
     if (!mets.isValid())
     {
@@ -367,6 +439,39 @@ void InputMaker::met(const edm::Event &event)
 
     utility::set(pb_met->mutable_p4(),
             &mets->begin()->p4());
+}
+
+void InputMaker::triggers(const edm::Event &event,
+        const edm::EventSetup &setup)
+{
+    if (_hlts_tag.empty()
+            || !_hlt_config
+            || _hlts.empty())
+        return;
+
+    Handle<TriggerResults> hlts;
+    event.getByLabel(InputTag(_hlts_tag), hlts);
+
+    if (!hlts.isValid())
+    {
+        LogWarning("InputMaker")
+            << "failed to extract HLTs";
+
+        return;
+    }
+    
+    for(Triggers::const_iterator hlt = _hlts.begin();
+            _hlts.end() != hlt;
+            ++hlt)
+    {
+        bsm::Trigger *pb_hlt = _event->add_hlts();
+
+        pb_hlt->set_hash(hlt->second.hash);
+        pb_hlt->set_pass(hlts->accept(hlt->first));
+        pb_hlt->set_version(hlt->second.version);
+        pb_hlt->set_prescale(_hlt_config->prescaleValue(event,
+                    setup, hlt->second.name));
+    }
 }
 
 void InputMaker::fill(bsm::Electron *pb_electron, const pat::Electron *electron)

@@ -7,6 +7,7 @@
 #define BSM_INPUT_MAKER
 
 #include <string>
+#include <map>
 
 #include <boost/shared_ptr.hpp>
 
@@ -14,6 +15,7 @@
 #include "FWCore/Framework/interface/EDAnalyzer.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
+class HLTConfigProvider;
 class PFJetIDSelectionFunctor;
 
 namespace pat
@@ -37,6 +39,7 @@ namespace bsm
 
         private:
             virtual void beginJob();
+            virtual void beginRun(const edm::Run &, const edm::EventSetup &);
             virtual void analyze(const edm::Event &, const edm::EventSetup &);
             virtual void endJob();
 
@@ -51,6 +54,8 @@ namespace bsm
             void primaryVertices(const edm::Event &);
             void met(const edm::Event &);
 
+            void triggers(const edm::Event &, const edm::EventSetup &);
+
             void fill(bsm::Electron *, const pat::Electron *);
             void fill(bsm::Muon *, const pat::Muon *);
 
@@ -63,12 +68,29 @@ namespace bsm
             std::string _reco_muons_tag;
 
             std::string _primary_vertices_tag;
-            std::string _missing_energies;
+            std::string _missing_energies_tag;
+
+            std::string _hlts_tag;
 
             std::string _input_type;
 
             boost::shared_ptr<Writer> _writer;
             boost::shared_ptr<Event> _event;
+
+            boost::shared_ptr<HLTConfigProvider> _hlt_config;
+
+            struct Trigger
+            {
+                std::string name;
+                std::size_t hash;
+                uint32_t version;
+            };
+
+            // ID <-> Trigger [Menu]
+            //
+            typedef std::map<uint32_t, Trigger> Triggers;
+
+            Triggers _hlts;
     };
 }
 

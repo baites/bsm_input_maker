@@ -15,5 +15,7 @@ InputMaker = cms.EDAnalyzer(
     primary_vertices = cms.string("goodOfflinePrimaryVertices"),
     missing_energies = cms.string("patMETsPFlow"),
 
+    hlts = cms.string("TriggerResults::REDIGI311X"),
+
     input_type = cms.string("unknown")
 )
