@@ -54,6 +54,7 @@ try
         else
             writer.reset(new Writer(argv[1]));
 
+        writer->open();
         writer->input()->set_type(Input::DATA);
 
         boost::shared_ptr<Event> event(new Event());
