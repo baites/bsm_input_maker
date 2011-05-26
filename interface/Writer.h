@@ -27,6 +27,18 @@ namespace bsm
     class Writer
     {
         public:
+            class Delegate
+            {
+                public:
+                    virtual ~Delegate() {};
+
+                    virtual void fileWillOpen(const Writer *) {};
+                    virtual void fileDidOpen(const Writer *) {};
+
+                    virtual void fileWillClose(const Writer *) {};
+                    virtual void fileDidClose(const Writer *) {};
+            };
+
             typedef boost::shared_ptr<Input> InputPtr;
 
             Writer(const std::string &output_file,
@@ -41,13 +53,16 @@ namespace bsm
 
             virtual std::string filename() const;
 
+            void open();
+            void close();
+
+            void setDelegate(Delegate *);
+            Delegate *delegate() const;
+
         private:
             // Physical write to the file
             //
             void write(const std::string &);
-
-            void open();
-            void close();
 
             void generateFilename();
 
@@ -68,6 +83,8 @@ namespace bsm
             boost::shared_ptr<CodedOutputStream> _coded_out;
 
             InputPtr _input;
+
+            Delegate *_delegate;
     };
 }
 

@@ -40,11 +40,10 @@ using bsm::Writer;
 Writer::Writer(const string &output, const uint32_t &file_size):
     _path(output),
     _file_size(file_size),
-    _file_number(1)
+    _file_number(0)
 {
     _input.reset(new Input());
-
-    open();
+    _delegate = 0;
 }
 
 Writer::~Writer()
@@ -81,6 +80,16 @@ std::string Writer::filename() const
     return _filename;
 }
 
+void Writer::setDelegate(Delegate *delegate)
+{
+    _delegate = delegate;
+}
+
+Writer::Delegate *Writer::delegate() const
+{
+    return _delegate;
+}
+
 
 
 // Privates
@@ -95,6 +104,9 @@ void Writer::open()
 {
     generateFilename();
 
+    if (_delegate)
+        _delegate->fileWillOpen(this);
+
     _std_out.open(filename().c_str(), ios::out | ios::trunc | ios::binary);
     ++_file_number;
 
@@ -104,12 +116,18 @@ void Writer::open()
     // Pointer to the Input object
     //
     _coded_out->WriteLittleEndian64(0);
+
+    if (_delegate)
+        _delegate->fileDidOpen(this);
 }
 
 void Writer::close()
 {
     if (!_std_out.is_open())
         return;
+
+    if (_delegate)
+        _delegate->fileWillClose(this);
 
     // Write Input at the end of the file
     //
@@ -137,6 +155,9 @@ void Writer::close()
     _std_out.close();
 
     _input->set_events(0);
+
+    if (_delegate)
+        _delegate->fileDidClose(this);
 }
 
 void Writer::generateFilename()
