@@ -10,6 +10,7 @@ import "Jet.proto";
 import "Muon.proto";
 import "MissingEnergy.proto";
 import "PrimaryVertex.proto";
+import "Trigger.proto";
 
 package bsm;
 
@@ -26,4 +27,6 @@ message Event
 
     repeated Muon pf_muons = 6;
     repeated Muon reco_muons = 7;
+
+    repeated Trigger hlts = 8;
 }
