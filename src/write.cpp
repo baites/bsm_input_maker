@@ -95,7 +95,7 @@ try
 
             for(int m = 0, muons = randomizer->Poisson(10); muons > m; ++m)
             {
-                Muon *muon = event->add_muons();
+                Muon *muon = event->add_pf_muons();
                 LorentzVector *p4 = muon->mutable_physics_object()->mutable_p4();
 
                 p4->set_e(randomizer->Gaus(.105, 0.005));

@@ -176,13 +176,13 @@ try
                 h_jet_pz->Fill(jet.physics_object().p4().pz());
             }
 
-            h_nmuon->Fill(event->muons_size());
+            h_nmuon->Fill(event->pf_muons_size());
 
-            for(int imuon = 0, muons = event->muons_size();
+            for(int imuon = 0, muons = event->pf_muons_size();
                     muons > imuon;
                     ++imuon)
             {
-                const Muon &muon = event->muons(imuon);
+                const Muon &muon = event->pf_muons(imuon);
 
                 h_muon_x->Fill(muon.physics_object().vertex().x());
                 h_muon_y->Fill(muon.physics_object().vertex().y());
@@ -200,7 +200,11 @@ try
         cout << "Events read: " << events_read << endl;
 
         {
-            boost::shared_ptr<TRint> app(new TRint("app", &argc, argv));
+            int empty_argc = 1;
+            char *empty_argv[] = { argv[0] };
+
+            boost::shared_ptr<TRint>
+                app(new TRint("app", &empty_argc, empty_argv));
 
             typedef boost::shared_ptr<TCanvas> CanvasPtr;
 
