@@ -58,7 +58,7 @@ const Writer::InputPtr Writer::input() const
 
 bool Writer::write(const Event &event)
 {
-    if (_file_size < _coded_out->ByteCount() / 1000)
+    if (_file_size < static_cast<uint32_t>(_coded_out->ByteCount() / 1000))
     {
         close();
         open();
