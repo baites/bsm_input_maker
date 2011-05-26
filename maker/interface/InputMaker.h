@@ -15,6 +15,8 @@
 #include "FWCore/Framework/interface/EDAnalyzer.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
+#include "bsm_input_maker/bsm_input/interface/Writer.h"
+
 class HLTConfigProvider;
 class PFJetIDSelectionFunctor;
 
@@ -31,11 +33,17 @@ namespace bsm
     class Muon;
     class Writer;
 
-    class InputMaker: public edm:: EDAnalyzer
+    class InputMaker: public edm:: EDAnalyzer,
+        public bsm::Writer::Delegate
     {
         public:
             InputMaker(const edm::ParameterSet &);
             virtual ~InputMaker();
+
+            // Writer::Delegate interface
+            //
+            virtual void fileDidOpen(bsm::Writer *);
+            virtual void fileDidClose(bsm::Writer *);
 
         private:
             virtual void beginJob();
@@ -59,6 +67,8 @@ namespace bsm
             void fill(bsm::Electron *, const pat::Electron *);
             void fill(bsm::Muon *, const pat::Muon *);
 
+            void addHLTtoMap(const std::size_t &hash, const std::string &name);
+
             std::string _jets_tag;
 
             std::string _pf_electrons_tag;
@@ -81,6 +91,7 @@ namespace bsm
 
             struct Trigger
             {
+                std::string bsm_name;
                 std::string name;
                 std::size_t hash;
                 uint32_t version;

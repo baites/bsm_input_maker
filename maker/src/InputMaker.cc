@@ -30,7 +30,6 @@
 #include "bsm_input_maker/bsm_input/interface/Isolation.pb.h"
 #include "bsm_input_maker/bsm_input/interface/Track.pb.h"
 #include "bsm_input_maker/bsm_input/interface/Trigger.pb.h"
-#include "bsm_input_maker/bsm_input/interface/Writer.h"
 #include "bsm_input_maker/maker/interface/Selector.h"
 #include "bsm_input_maker/maker/interface/Utility.h"
 
@@ -60,6 +59,9 @@ InputMaker::InputMaker(const ParameterSet &config)
     GOOGLE_PROTOBUF_VERIFY_VERSION;
 
     _writer.reset(new Writer(config.getParameter<string>("fileName")));
+    _writer->setDelegate(this);
+    _writer->open();
+
     _event.reset(new Event());
 
     _jets_tag = config.getParameter<string>("jets");
@@ -120,6 +122,27 @@ InputMaker::~InputMaker()
     google::protobuf::ShutdownProtobufLibrary();
 }
 
+void InputMaker::fileDidOpen(bsm::Writer *writer)
+{
+    if (writer != _writer.get())
+        return;
+
+    for(Triggers::const_iterator hlt = _hlts.begin();
+            _hlts.end() != hlt;
+            ++hlt)
+    {
+        addHLTtoMap(hlt->second.hash, hlt->second.bsm_name);
+    }
+}
+
+void InputMaker::fileDidClose(bsm::Writer *writer)
+{
+    if (writer != _writer.get())
+        return;
+
+    _writer->input()->mutable_info()->mutable_triggers()->Clear();
+}
+
 
 
 // Privates
@@ -137,6 +160,9 @@ void InputMaker::beginRun(const edm::Run &run,
     if (!_hlt_config->init(run, setup, InputTag(_hlts_tag).process(),
                 is_changed))
     {
+        LogWarning("InputMaker")
+            << "failed to initialize HLT Config Provider";
+
         _hlt_config.reset();
         _hlts.clear();
 
@@ -163,7 +189,7 @@ void InputMaker::beginRun(const edm::Run &run,
             ++trigger, ++cmssw_id)
     {
         smatch matches;
-        if (!regex_match(*trigger, matches, regex("^(\\w+?)(?:_[vV](\\d+))?$")))
+        if (!regex_match(*trigger, matches, regex("^(HLT_\\w+?)(?:_[vV](\\d+))?$")))
         {
             // Didn't understand the trigger name
             //
@@ -173,6 +199,7 @@ void InputMaker::beginRun(const edm::Run &run,
 
         Trigger obj;
 
+        obj.bsm_name = matches[1];
         obj.name = *trigger;
         obj.hash = make_hash(obj.name);
         obj.version = matches[2].matched
@@ -180,6 +207,8 @@ void InputMaker::beginRun(const edm::Run &run,
             : 1;
 
         _hlts[cmssw_id] = obj;
+
+        addHLTtoMap(obj.hash, obj.bsm_name);
     }
 }
 
@@ -196,6 +225,8 @@ void InputMaker::analyze(const edm::Event &event,
 
     primaryVertices(event);
     met(event);
+
+    triggers(event, setup);
 
     _writer->write(*_event);
 
@@ -467,10 +498,11 @@ void InputMaker::triggers(const edm::Event &event,
         bsm::Trigger *pb_hlt = _event->add_hlts();
 
         pb_hlt->set_hash(hlt->second.hash);
+        pb_hlt->set_pass(false);
         pb_hlt->set_pass(hlts->accept(hlt->first));
         pb_hlt->set_version(hlt->second.version);
-        pb_hlt->set_prescale(_hlt_config->prescaleValue(event,
-                    setup, hlt->second.name));
+        pb_hlt->set_prescale(1);
+        //pb_hlt->set_prescale(_hlt_config->prescaleValue(event, setup, hlt->second.name));
     }
 }
 
@@ -525,6 +557,29 @@ void InputMaker::fill(bsm::Muon *pb_muon, const pat::Muon *muon)
         track->set_hits(muon->globalTrack()->hitPattern().numberOfValidMuonHits());
         track->set_normalized_chi2(muon->globalTrack()->normalizedChi2());
     }
+}
+
+void InputMaker::addHLTtoMap(const std::size_t &hash, const std::string &name)
+{
+    typedef ::google::protobuf::RepeatedPtrField<bsm::TriggerItem>
+        TriggerItems;
+
+    bsm::Input::Info *info = _writer->input()->mutable_info();
+    for(TriggerItems::const_iterator trigger = info->triggers().begin();
+            info->triggers().end() != trigger;
+            ++trigger)
+    {
+        if (hash == trigger->hash())
+        {
+            // Trigger is already stored
+            //
+            return;
+        }
+    }
+
+    bsm::TriggerItem *item = info->add_triggers();
+    item->set_hash(hash);
+    item->set_name(name);
 }
 
 DEFINE_FWK_MODULE(InputMaker);
