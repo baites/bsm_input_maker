@@ -7,7 +7,7 @@ package bsm;
 
 message Trigger
 {
-    required uint64 id = 1;
+    required uint64 hash = 1;
     required bool pass = 2;
     optional uint32 version = 3 [default = 1];
     optional uint32 prescale = 4;
@@ -17,6 +17,6 @@ message Trigger
 
 message TriggerItem
 {
-    optional uint64 id = 1;
+    optional uint64 hash = 1;
     optional string name = 2;
 }
