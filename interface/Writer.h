@@ -69,7 +69,7 @@ namespace bsm
             std::fstream _std_out;
             fs::path _path;
             std::string _filename;
-            const int _file_size;
+            const uint32_t _file_size;
 
             uint32_t _file_number;
             
