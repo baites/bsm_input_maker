@@ -25,7 +25,7 @@ if (os.path.exists("input.txt")):
         process.source.fileNames.append("dcap:///pnfs/cms/WAX/11" + file.strip())
 
 process.maxEvents = cms.untracked.PSet(
-        input = cms.untracked.int32(1000)
+        input = cms.untracked.int32(10000)
 )
 
 process.options = cms.untracked.PSet(
@@ -36,6 +36,7 @@ process.options = cms.untracked.PSet(
 process.load("bsm_input_maker.maker.InputMaker_cfi")
 process.InputMaker.input_type = cms.string("ttbar")
 process.InputMaker.hlt_pattern = cms.string("hlt_isomu*")
+process.InputMaker.jets = cms.string("goodPatJetsCA8PrunedPF")
 
 process.p = cms.Path(
     process.InputMaker

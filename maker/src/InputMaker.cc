@@ -283,11 +283,6 @@ void InputMaker::jets(const edm::Event &event)
             jets->end() != jet;
             ++jet)
     {
-        // Use only PF jets
-        //
-        if (!jet->isPFJet())
-            continue;
-
         bsm::Jet *pb_jet = _event->add_jets();
 
         utility::set(pb_jet->mutable_physics_object()->mutable_p4(),
@@ -295,20 +290,14 @@ void InputMaker::jets(const edm::Event &event)
         utility::set(pb_jet->mutable_physics_object()->mutable_vertex(),
             &jet->vertex());
 
-        bsm::Jet::Energy *pb_energy = pb_jet->mutable_energy();
-        pb_energy->set_electron(jet->electronEnergy());
-        pb_energy->set_muon(jet->muonEnergy());
-        pb_energy->set_photon(jet->photonEnergy());
-
         // Process children (constituents)
         //
         for(uint32_t i = 0, max = jet->numberOfDaughters(); max > i; ++i)
         {
-            const reco::Candidate *child = jet->daughter(i);
+            const reco::PFJet *child = dynamic_cast<const reco::PFJet *>(jet->daughter(i));
             if (!child)
                 continue;
 
-            
             bsm::Jet::Child *pb_child = pb_jet->add_children();
 
             utility::set(pb_child->mutable_physics_object()->mutable_p4(),
