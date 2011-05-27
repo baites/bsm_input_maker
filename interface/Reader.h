@@ -38,6 +38,8 @@ namespace bsm
 
             virtual std::string filename() const;
 
+            virtual uint32_t totalEventsSize() const;
+
         private:
             bool read(std::string &);
 
@@ -56,6 +58,7 @@ namespace bsm
             bool _is_good;
             uint32_t _current_event;
             InputPtr _input;
+            uint32_t _total_events_size;
     };
 }
 

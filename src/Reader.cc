@@ -31,7 +31,8 @@ Reader::Reader(const string &input):
     _std_in(input.c_str(),
             ios::in | ios::binary),
     _is_good(true),
-    _current_event(0)
+    _current_event(0),
+    _total_events_size(0)
 {
     _raw_in.reset(new ::google::protobuf::io::IstreamInputStream(&_std_in));
     _coded_in.reset(new CodedInputStream(_raw_in.get()));
@@ -101,6 +102,7 @@ bool Reader::read(Event &event)
 
         return false;
 
+    _total_events_size += message.size();
     ++_current_event;
 
     return true;
@@ -121,6 +123,7 @@ bool Reader::skip()
 
     _coded_in->Skip(message_size);
 
+    _total_events_size += message_size;
     ++_current_event;
 
     return true;
@@ -131,6 +134,15 @@ std::string Reader::filename() const
     return _filename;
 }
 
+uint32_t Reader::totalEventsSize() const
+{
+    return _total_events_size;
+}
+
+
+
+// Private
+//
 bool Reader::read(std::string &message)
 {
     uint32_t message_size;
