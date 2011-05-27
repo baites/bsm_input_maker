@@ -300,6 +300,23 @@ void InputMaker::jets(const edm::Event &event)
         pb_energy->set_muon(jet->muonEnergy());
         pb_energy->set_photon(jet->photonEnergy());
 
+        // Process children (constituents)
+        //
+        for(uint32_t i = 0, max = jet->numberOfDaughters(); max > i; ++i)
+        {
+            const reco::Candidate *child = jet->daughter(i);
+            if (!child)
+                continue;
+
+            
+            bsm::Jet::Child *pb_child = pb_jet->add_children();
+
+            utility::set(pb_child->mutable_physics_object()->mutable_p4(),
+                    &child->p4());
+            utility::set(pb_child->mutable_physics_object()->mutable_vertex(),
+                    &child->vertex());
+        }
+
         // Skip the rest if Generator Parton is not found for the jet
         //
         if (!jet->genParton())
