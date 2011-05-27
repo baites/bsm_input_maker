@@ -16,6 +16,7 @@ InputMaker = cms.EDAnalyzer(
     missing_energies = cms.string("patMETsPFlow"),
 
     hlts = cms.string("TriggerResults::REDIGI311X"),
+    hlt_pattern = cms.string("hlt_*"),
 
     input_type = cms.string("unknown")
 )

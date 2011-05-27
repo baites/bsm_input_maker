@@ -81,6 +81,7 @@ namespace bsm
             std::string _missing_energies_tag;
 
             std::string _hlts_tag;
+            std::string _hlt_pattern;
 
             std::string _input_type;
 
@@ -91,7 +92,7 @@ namespace bsm
 
             struct Trigger
             {
-                std::string bsm_name;
+                std::string full_name;
                 std::string name;
                 std::size_t hash;
                 uint32_t version;

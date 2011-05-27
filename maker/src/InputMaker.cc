@@ -40,6 +40,9 @@ using std::vector;
 
 using boost::lexical_cast;
 using boost::regex;
+using boost::regex_match;
+using boost::regex_replace;
+using boost::regex_search;
 using boost::smatch;
 using boost::to_lower;
 
@@ -76,6 +79,21 @@ InputMaker::InputMaker(const ParameterSet &config)
     _missing_energies_tag = config.getParameter<string>("missing_energies");
 
     _hlts_tag = config.getParameter<string>("hlts");
+    _hlt_pattern = config.getParameter<string>("hlt_pattern");
+    to_lower(_hlt_pattern);
+
+    if (!regex_search(_hlt_pattern, regex("^(?:\\w*\\*?)+$")))
+    {
+        // Didn't understand the trigger pattern
+        //
+        _hlt_pattern = "";
+    }
+    else
+    {
+        _hlt_pattern = regex_replace(_hlt_pattern, regex("\\*+"), "\\.\\*");
+        if (".*" == _hlt_pattern)
+            _hlt_pattern = "";
+    }
 
     _input_type = config.getParameter<string>("input_type");
     to_lower(_input_type);
@@ -131,7 +149,7 @@ void InputMaker::fileDidOpen(bsm::Writer *writer)
             _hlts.end() != hlt;
             ++hlt)
     {
-        addHLTtoMap(hlt->second.hash, hlt->second.bsm_name);
+        addHLTtoMap(hlt->second.hash, hlt->second.name);
     }
 }
 
@@ -184,6 +202,8 @@ void InputMaker::beginRun(const edm::Run &run,
     const CMSSW_Triggers &triggers = _hlt_config->triggerNames();
     uint32_t cmssw_id = 0;
     boost::hash<std::string> make_hash;
+
+    regex user_pattern(_hlt_pattern, boost::regex_constants::icase | boost::regex_constants::perl);
     for(CMSSW_Triggers::const_iterator trigger = triggers.begin();
             triggers.end() != trigger;
             ++trigger, ++cmssw_id)
@@ -197,10 +217,15 @@ void InputMaker::beginRun(const edm::Run &run,
             continue;
         }
 
+        if (!_hlt_pattern.empty()
+                && !regex_search(*trigger, user_pattern))
+            continue;
+
         Trigger obj;
 
-        obj.bsm_name = matches[1];
-        obj.name = *trigger;
+        obj.full_name = *trigger;
+        obj.name = matches[1];
+        to_lower(obj.name);
         obj.hash = make_hash(obj.name);
         obj.version = matches[2].matched
             ? lexical_cast<uint32_t>(matches[2])
@@ -208,7 +233,7 @@ void InputMaker::beginRun(const edm::Run &run,
 
         _hlts[cmssw_id] = obj;
 
-        addHLTtoMap(obj.hash, obj.bsm_name);
+        addHLTtoMap(obj.hash, obj.name);
     }
 }
 
@@ -502,7 +527,7 @@ void InputMaker::triggers(const edm::Event &event,
         pb_hlt->set_pass(hlts->accept(hlt->first));
         pb_hlt->set_version(hlt->second.version);
         pb_hlt->set_prescale(1);
-        //pb_hlt->set_prescale(_hlt_config->prescaleValue(event, setup, hlt->second.name));
+        //pb_hlt->set_prescale(_hlt_config->prescaleValue(event, setup, hlt->second.full_name));
     }
 }
 
