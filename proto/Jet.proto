@@ -24,7 +24,16 @@ message Jet
         optional double hpd = 3;
     }
 
+    message Child
+    {
+        required PhysicsObject physics_object = 1;
+
+        optional Child children = 2;
+    }
+
     required PhysicsObject physics_object = 1;
     optional GenParticle gen_parton = 2;
     optional Energy energy = 3;
+    optional Extra extra = 4;
+    repeated Child children = 5;
 }
