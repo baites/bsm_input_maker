@@ -172,6 +172,11 @@ void InputMaker::beginJob()
 void InputMaker::beginRun(const edm::Run &run,
         const edm::EventSetup &setup)
 {
+    // Skip triggers is _hlts_tag is empty
+    //
+    if (_hlts_tag.emtpy())
+        return;
+
     bool is_changed = true;
 
     _hlt_config.reset(new HLTConfigProvider());
