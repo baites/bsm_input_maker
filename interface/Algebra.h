@@ -8,7 +8,7 @@
 
 namespace bsm
 {
-    class LoretnzVector;
+    class LorentzVector;
     class Vector;
 
     LorentzVector &operator +=(LorentzVector &, const LorentzVector &);
@@ -16,6 +16,10 @@ namespace bsm
 
     Vector &operator +=(Vector &, const Vector &);
     Vector &operator -=(Vector &, const Vector &);
+
+    double operator *(const LorentzVector &, const LorentzVector &);
+
+    double mass(const LorentzVector &);
 }
 
 #endif

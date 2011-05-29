@@ -3,6 +3,8 @@
 // Created by Samvel Khalatyan, May 27, 2011
 // Copyright 2011, All rights reserved
 
+#include <cmath>
+
 #include "bsm_input/interface/Physics.pb.h"
 #include "bsm_input/interface/Algebra.h"
 
@@ -45,4 +47,21 @@ Vector &bsm::operator -=(Vector &v1, const Vector &v2)
     v1.set_z(v1.z() - v2.z());
 
     return v1;
+}
+
+double bsm::operator *(const LorentzVector &v1, const LorentzVector &v2)
+{
+    return v1.e() * v2.e()
+        - v1.px() * v2.px()
+        - v1.py() * v2.py()
+        - v1.pz() * v2.pz();
+}
+
+double bsm::mass(const LorentzVector &v)
+{
+    double magnitude = v * v;
+
+    return 0 >= magnitude
+        ? 0
+        : sqrt(magnitude);
 }
