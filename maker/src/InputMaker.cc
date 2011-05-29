@@ -174,7 +174,7 @@ void InputMaker::beginRun(const edm::Run &run,
 {
     // Skip triggers is _hlts_tag is empty
     //
-    if (_hlts_tag.emtpy())
+    if (_hlts_tag.empty())
         return;
 
     bool is_changed = true;
