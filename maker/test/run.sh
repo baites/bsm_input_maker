@@ -26,7 +26,6 @@ echo
 
 cp PWD/input.txt .
 cp PWD/cmssw_cfg.py .
-#/uscmst1/prod/sw/cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_1_5/bin/slc5_amd64_gcc434/cmsRun cmssw_cfg.py
 cmsRun cmssw_cfg.py
 
 exit 0

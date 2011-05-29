@@ -21,8 +21,6 @@ then
     exit 1
 fi
 
-exit 0
-
 prod_folder=prod_`date +%F_%R_%S | sed -e 's/[-:]/_/g'`
 if [[ -d $prod_folder ]]
 then
