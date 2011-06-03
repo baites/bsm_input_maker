@@ -4,6 +4,7 @@
 // Copyright 2011, All rights reserved
 
 #include <cmath>
+#include <cfloat>
 
 #include "bsm_input/interface/Physics.pb.h"
 #include "bsm_input/interface/Algebra.h"
@@ -36,6 +37,26 @@ LorentzVector &bsm::operator -=(LorentzVector &v1, const LorentzVector &v2)
     return v1;
 }
 
+LorentzVector bsm::operator +(const LorentzVector &v1, const LorentzVector &v2)
+{
+    LorentzVector v;
+
+    v += v1;
+    v += v2;
+
+    return v;
+}
+
+LorentzVector bsm::operator -(const LorentzVector &v1, const LorentzVector &v2)
+{
+    LorentzVector v;
+
+    v += v1;
+    v -= v2;
+
+    return v;
+}
+
 Vector &bsm::operator +=(Vector &v1, const Vector &v2)
 {
     v1.set_x(v1.x() + v2.x());
@@ -54,12 +75,67 @@ Vector &bsm::operator -=(Vector &v1, const Vector &v2)
     return v1;
 }
 
+Vector bsm::operator +(const Vector &v1, const Vector &v2)
+{
+    Vector v;
+
+    v += v1;
+    v += v2;
+
+    return v;
+}
+
+Vector bsm::operator -(const Vector &v1, const Vector &v2)
+{
+    Vector v;
+
+    v += v1;
+    v -= v2;
+
+    return v;
+}
+
 double bsm::operator *(const LorentzVector &v1, const LorentzVector &v2)
 {
     return v1.e() * v2.e()
         - v1.px() * v2.px()
         - v1.py() * v2.py()
         - v1.pz() * v2.pz();
+}
+
+double bsm::et(const LorentzVector &v)
+{
+    double p = momentum(v);
+
+    if (0 == p
+            || 0 == v.pz())
+    {
+        return 0;
+    }
+    else
+    {
+        return v.e() * pt(v) / p;
+    }
+}
+
+double bsm::eta(const LorentzVector &v)
+{
+    if (0 == v.px()
+            && 0 == v.py())
+    {
+        // zero pT
+        //
+        if (0 <= v.pz())
+            return DBL_MAX;
+        else
+            return -DBL_MAX;
+    }
+    else
+    {
+        double cosine_theta = v.pz() / momentum(v);
+
+        return -0.5 * log( ( 1 - cosine_theta) / (1 + cosine_theta) );
+    }
 }
 
 double bsm::mass(const LorentzVector &v)
@@ -69,4 +145,16 @@ double bsm::mass(const LorentzVector &v)
     return (0 >= magnitude)
         ? 0
         : sqrt(magnitude);
+}
+
+double bsm::momentum(const LorentzVector &v)
+{
+    return sqrt(v.px() * v.px()
+            + v.py() * v.py()
+            + v.pz() * v.pz());
+}
+
+double bsm::pt(const LorentzVector &v)
+{
+    return sqrt(v.px() * v.px() + v.py() * v.py());
 }
