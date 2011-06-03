@@ -10,6 +10,20 @@ namespace bsm
 {
     class Reader;
     class Writer;
+
+    class Electron;
+    class Event;
+    class GenParticle;
+    class Input;
+    class Isolation;
+    class Jet;
+    class MissingEnergy;
+    class Muon;
+    class LorentzVector;
+    class Vector;
+    class PhysicsObject;
+    class Tracck;
+    class Trigger;
 }
 
 #endif
