@@ -12,6 +12,8 @@
 using bsm::LorentzVector;
 using bsm::Vector;
 
+const double bsm::pi = 3.14159265358979323846;
+
 LorentzVector &bsm::operator +=(LorentzVector &v1, const LorentzVector &v2)
 {
     v1.set_e(v1.e() + v2.e());
@@ -103,6 +105,35 @@ double bsm::operator *(const LorentzVector &v1, const LorentzVector &v2)
         - v1.pz() * v2.pz();
 }
 
+double bsm::dphi(const LorentzVector &v1, const LorentzVector &v2)
+{
+    double result = phi(v1) - phi(v2);
+
+    while(result >= pi)
+        result -= pi;
+
+    while(result < -pi)
+        result += pi;
+
+    return result;
+}
+
+double bsm::dr(const LorentzVector &v1, const LorentzVector &v2)
+{
+    double delta_phi = dphi(v1, v2);
+    double eta1 = eta(v1);
+    double eta2 = eta(v2);
+
+    if (eta1 == -eta2
+            && DBL_MAX == fabs(eta1))
+        return DBL_MAX;
+
+    double delta_eta = eta1 - eta2;
+
+    return sqrt(delta_eta * delta_eta + delta_phi * delta_phi);
+
+}
+
 double bsm::et(const LorentzVector &v)
 {
     double p = momentum(v);
@@ -152,6 +183,19 @@ double bsm::momentum(const LorentzVector &v)
     return sqrt(v.px() * v.px()
             + v.py() * v.py()
             + v.pz() * v.pz());
+}
+
+double bsm::phi(const LorentzVector &v)
+{
+    if (!v.px())
+        return atan2(v.py(), v.px());
+
+    if (0 == v.py())
+        return 0;
+    else if (0 < v.py())
+        return pi / 2;
+    else
+        return -pi / 2;
 }
 
 double bsm::pt(const LorentzVector &v)

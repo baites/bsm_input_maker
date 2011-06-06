@@ -11,6 +11,8 @@ namespace bsm
     class LorentzVector;
     class Vector;
 
+    extern const double pi;
+
     LorentzVector &operator +=(LorentzVector &, const LorentzVector &);
     LorentzVector &operator -=(LorentzVector &, const LorentzVector &);
 
@@ -25,10 +27,14 @@ namespace bsm
 
     double operator *(const LorentzVector &, const LorentzVector &);
 
+    double dphi(const LorentzVector &, const LorentzVector &);
+    double dr(const LorentzVector &, const LorentzVector &);
+
     double et(const LorentzVector &);
     double eta(const LorentzVector &);
     double mass(const LorentzVector &);
     double momentum(const LorentzVector &);
+    double phi(const LorentzVector &);
     double pt(const LorentzVector &);
 }
 
