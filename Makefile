@@ -92,7 +92,7 @@ $(LIB): $(OBJS)
 #
 $(PROGS): $(OBJS) 
 	@echo "[+] Compiling programs ..."
-	$(CCC) $(CXXFLAGS) `root-config --glibs` $(LIBS) $(OBJS) $(PROTOCOBJS) ./src/$@.cpp -o ./bin/bsm_$@
+	$(CCC) $(CXXFLAGS) `root-config --glibs` $(LIBS) $(OBJS) $(PROTOCOBJS) ./src/$@.cpp -o ./bin/test_$@
 	@echo
 
 
@@ -101,7 +101,7 @@ $(PROGS): $(OBJS)
 #
 cleanbin:
 ifneq ($(strip $(PROGS)),)
-	rm -f $(addprefix ./bin/bsm_,$(PROGS))
+	rm -f $(addprefix ./bin/test_,$(PROGS))
 endif
 
 clean: cleanbin
