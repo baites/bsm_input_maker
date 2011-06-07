@@ -8,7 +8,7 @@
 #ifndef BSM_IO_WRITER
 #define BSM_IO_WRITER
 
-#include <fstream>
+#include <iosfwd>
 #include <string>
 
 #include <boost/shared_ptr.hpp>
@@ -17,13 +17,12 @@
 #include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/io/zero_copy_stream.h>
 
+#include "bsm_input/interface/bsm_input_fwd.h"
+
 namespace fs = boost::filesystem;
 
 namespace bsm
 {
-    class Event;
-    class Input;
-
     class Writer
     {
         public:
@@ -40,6 +39,7 @@ namespace bsm
             };
 
             typedef boost::shared_ptr<Input> InputPtr;
+            typedef boost::shared_ptr<Event> EventPtr;
 
             Writer(const std::string &output_file,
                     // Filesize is in KB
@@ -47,14 +47,16 @@ namespace bsm
                     const uint32_t &file_size = 10000);
             virtual ~Writer();
 
+            virtual void open();
+            virtual void close();
+
+            virtual bool isOpen() const;
+
             virtual const InputPtr input() const;
 
-            virtual bool write(const Event &);
+            virtual bool write(const EventPtr &);
 
             virtual std::string filename() const;
-
-            void open();
-            void close();
 
             void setDelegate(Delegate *);
             Delegate *delegate() const;
@@ -66,10 +68,11 @@ namespace bsm
 
             void generateFilename();
 
-            std::fstream _std_out;
+            const uint32_t _max_file_name_attempts;
+            const uint32_t _max_file_size;
+
             fs::path _path;
             std::string _filename;
-            const uint32_t _file_size;
 
             uint32_t _file_number;
             
@@ -79,6 +82,7 @@ namespace bsm
             typedef ::google::protobuf::io::CodedOutputStream
                 CodedOutputStream;
 
+            boost::shared_ptr<std::fstream> _std_out;
             boost::shared_ptr<ZeroCopyOutputStream> _raw_out;
             boost::shared_ptr<CodedOutputStream> _coded_out;
 
