@@ -131,7 +131,6 @@ double bsm::dr(const LorentzVector &v1, const LorentzVector &v2)
     double delta_eta = eta1 - eta2;
 
     return sqrt(delta_eta * delta_eta + delta_phi * delta_phi);
-
 }
 
 double bsm::et(const LorentzVector &v)
