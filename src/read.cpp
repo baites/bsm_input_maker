@@ -126,185 +126,189 @@ try
         h_muon_pz->GetXaxis()->SetTitle("PZ_{MUON} [GeV/c]");
 
         boost::shared_ptr<Reader> reader(new Reader(argv[1]));
-        if (reader->input()->has_type())
+        reader->open();
+        if (reader->isOpen())
         {
-            switch(reader->input()->type())
+            if (reader->input()->has_type())
             {
-                case Input::DATA: cout << " DATA input" << endl;
-                                  break;
+                switch(reader->input()->type())
+                {
+                    case Input::DATA: cout << " DATA input" << endl;
+                                      break;
 
-                default: cout << " Unknown Input" << endl;
-                         break;
-            }
-        }
-
-        cout << "Start reading events: " << reader->input()->events() << endl;
-
-        uint32_t events_read = 0;
-        for(boost::shared_ptr<Event> event(new Event());
-                reader->read(*event);
-                ++events_read)
-        {
-            h_npv->Fill(event->primary_vertices_size());
-
-            for(int ipv = 0, pvs = event->primary_vertices_size();
-                    pvs > ipv;
-                    ++ipv)
-            {
-                const PrimaryVertex &pv = event->primary_vertices(ipv);
-
-                h_pv_x->Fill(pv.vertex().x());
-                h_pv_y->Fill(pv.vertex().y());
-                h_pv_z->Fill(pv.vertex().z());
+                    default: cout << " Unknown Input" << endl;
+                             break;
+                }
             }
 
-            h_njet->Fill(event->jets_size());
+            cout << "Start reading events: " << reader->input()->events() << endl;
 
-            for(int ijet = 0, jets = event->jets_size();
-                    jets > ijet;
-                    ++ijet)
+            uint32_t events_read = 0;
+            for(boost::shared_ptr<Event> event(new Event());
+                    reader->read(event);
+                    ++events_read)
             {
-                const Jet &jet = event->jets(ijet);
+                h_npv->Fill(event->primary_vertices_size());
 
-                h_jet_x->Fill(jet.physics_object().vertex().x());
-                h_jet_y->Fill(jet.physics_object().vertex().y());
-                h_jet_z->Fill(jet.physics_object().vertex().z());
+                for(int ipv = 0, pvs = event->primary_vertices_size();
+                        pvs > ipv;
+                        ++ipv)
+                {
+                    const PrimaryVertex &pv = event->primary_vertices(ipv);
 
-                h_jet_e->Fill(jet.physics_object().p4().e());
-                h_jet_px->Fill(jet.physics_object().p4().px());
-                h_jet_py->Fill(jet.physics_object().p4().py());
-                h_jet_pz->Fill(jet.physics_object().p4().pz());
+                    h_pv_x->Fill(pv.vertex().x());
+                    h_pv_y->Fill(pv.vertex().y());
+                    h_pv_z->Fill(pv.vertex().z());
+                }
+
+                h_njet->Fill(event->jets_size());
+
+                for(int ijet = 0, jets = event->jets_size();
+                        jets > ijet;
+                        ++ijet)
+                {
+                    const Jet &jet = event->jets(ijet);
+
+                    h_jet_x->Fill(jet.physics_object().vertex().x());
+                    h_jet_y->Fill(jet.physics_object().vertex().y());
+                    h_jet_z->Fill(jet.physics_object().vertex().z());
+
+                    h_jet_e->Fill(jet.physics_object().p4().e());
+                    h_jet_px->Fill(jet.physics_object().p4().px());
+                    h_jet_py->Fill(jet.physics_object().p4().py());
+                    h_jet_pz->Fill(jet.physics_object().p4().pz());
+                }
+
+                h_nmuon->Fill(event->pf_muons_size());
+
+                for(int imuon = 0, muons = event->pf_muons_size();
+                        muons > imuon;
+                        ++imuon)
+                {
+                    const Muon &muon = event->pf_muons(imuon);
+
+                    h_muon_x->Fill(muon.physics_object().vertex().x());
+                    h_muon_y->Fill(muon.physics_object().vertex().y());
+                    h_muon_z->Fill(muon.physics_object().vertex().z());
+
+                    h_muon_e->Fill(muon.physics_object().p4().e());
+                    h_muon_px->Fill(muon.physics_object().p4().px());
+                    h_muon_py->Fill(muon.physics_object().p4().py());
+                    h_muon_pz->Fill(muon.physics_object().p4().pz());
+                }
+
+                event->Clear();
             }
 
-            h_nmuon->Fill(event->pf_muons_size());
-
-            for(int imuon = 0, muons = event->pf_muons_size();
-                    muons > imuon;
-                    ++imuon)
-            {
-                const Muon &muon = event->pf_muons(imuon);
-
-                h_muon_x->Fill(muon.physics_object().vertex().x());
-                h_muon_y->Fill(muon.physics_object().vertex().y());
-                h_muon_z->Fill(muon.physics_object().vertex().z());
-
-                h_muon_e->Fill(muon.physics_object().p4().e());
-                h_muon_px->Fill(muon.physics_object().p4().px());
-                h_muon_py->Fill(muon.physics_object().p4().py());
-                h_muon_pz->Fill(muon.physics_object().p4().pz());
-            }
-
-            event->Clear();
-        }
-
-        cout << "Events read: " << events_read << endl;
-
-        {
-            int empty_argc = 1;
-            char *empty_argv[] = { argv[0] };
-
-            boost::shared_ptr<TRint>
-                app(new TRint("app", &empty_argc, empty_argv));
-
-            typedef boost::shared_ptr<TCanvas> CanvasPtr;
-
-            vector<CanvasPtr> canvases;
-            {
-                CanvasPtr canvas(new TCanvas("pv_canvas", "PV Canvas", 800, 640));
-                canvases.push_back(canvas);
-
-                canvas->Divide(2, 2);
-
-                canvas->cd(1);
-                h_npv->Draw();
-
-                canvas->cd(2);
-                h_pv_x->Draw();
-
-                canvas->cd(3);
-                h_pv_y->Draw();
-
-                canvas->cd(4);
-                h_pv_z->Draw();
-            }
+            cout << "Events read: " << events_read << endl;
 
             {
-                CanvasPtr canvas(new TCanvas("jet_canvas_vertex", "Jet Canvas: Vertices", 800, 640));
-                canvases.push_back(canvas);
+                int empty_argc = 1;
+                char *empty_argv[] = { argv[0] };
 
-                canvas->Divide(2, 2);
+                boost::shared_ptr<TRint>
+                    app(new TRint("app", &empty_argc, empty_argv));
 
-                canvas->cd(1);
-                h_njet->Draw();
+                typedef boost::shared_ptr<TCanvas> CanvasPtr;
 
-                canvas->cd(2);
-                h_jet_x->Draw();
+                vector<CanvasPtr> canvases;
+                {
+                    CanvasPtr canvas(new TCanvas("pv_canvas", "PV Canvas", 800, 640));
+                    canvases.push_back(canvas);
 
-                canvas->cd(3);
-                h_jet_y->Draw();
+                    canvas->Divide(2, 2);
 
-                canvas->cd(4);
-                h_jet_z->Draw();
+                    canvas->cd(1);
+                    h_npv->Draw();
+
+                    canvas->cd(2);
+                    h_pv_x->Draw();
+
+                    canvas->cd(3);
+                    h_pv_y->Draw();
+
+                    canvas->cd(4);
+                    h_pv_z->Draw();
+                }
+
+                {
+                    CanvasPtr canvas(new TCanvas("jet_canvas_vertex", "Jet Canvas: Vertices", 800, 640));
+                    canvases.push_back(canvas);
+
+                    canvas->Divide(2, 2);
+
+                    canvas->cd(1);
+                    h_njet->Draw();
+
+                    canvas->cd(2);
+                    h_jet_x->Draw();
+
+                    canvas->cd(3);
+                    h_jet_y->Draw();
+
+                    canvas->cd(4);
+                    h_jet_z->Draw();
+                }
+
+                {
+                    CanvasPtr canvas(new TCanvas("jet_canvas_p4", "Jet Canvas: Lorentz Vector", 800, 640));
+                    canvases.push_back(canvas);
+
+                    canvas->Divide(2, 2);
+
+                    canvas->cd(1);
+                    h_jet_e->Draw();
+
+                    canvas->cd(2);
+                    h_jet_px->Draw();
+
+                    canvas->cd(3);
+                    h_jet_py->Draw();
+
+                    canvas->cd(4);
+                    h_jet_pz->Draw();
+                }
+
+                {
+                    CanvasPtr canvas(new TCanvas("muon_canvas_vertex", "Muon Canvas: Vertices", 800, 640));
+                    canvases.push_back(canvas);
+
+                    canvas->Divide(2, 2);
+
+                    canvas->cd(1);
+                    h_nmuon->Draw();
+
+                    canvas->cd(2);
+                    h_muon_x->Draw();
+
+                    canvas->cd(3);
+                    h_muon_y->Draw();
+
+                    canvas->cd(4);
+                    h_muon_z->Draw();
+                }
+
+                {
+                    CanvasPtr canvas(new TCanvas("muon_canvas_p4", "Muon Canvas: Lorentz Vector", 800, 640));
+                    canvases.push_back(canvas);
+
+                    canvas->Divide(2, 2);
+
+                    canvas->cd(1);
+                    h_muon_e->Draw();
+
+                    canvas->cd(2);
+                    h_muon_px->Draw();
+
+                    canvas->cd(3);
+                    h_muon_py->Draw();
+
+                    canvas->cd(4);
+                    h_muon_pz->Draw();
+                }
+
+                app->Run();
             }
-
-            {
-                CanvasPtr canvas(new TCanvas("jet_canvas_p4", "Jet Canvas: Lorentz Vector", 800, 640));
-                canvases.push_back(canvas);
-
-                canvas->Divide(2, 2);
-
-                canvas->cd(1);
-                h_jet_e->Draw();
-
-                canvas->cd(2);
-                h_jet_px->Draw();
-
-                canvas->cd(3);
-                h_jet_py->Draw();
-
-                canvas->cd(4);
-                h_jet_pz->Draw();
-            }
-
-            {
-                CanvasPtr canvas(new TCanvas("muon_canvas_vertex", "Muon Canvas: Vertices", 800, 640));
-                canvases.push_back(canvas);
-
-                canvas->Divide(2, 2);
-
-                canvas->cd(1);
-                h_nmuon->Draw();
-
-                canvas->cd(2);
-                h_muon_x->Draw();
-
-                canvas->cd(3);
-                h_muon_y->Draw();
-
-                canvas->cd(4);
-                h_muon_z->Draw();
-            }
-
-            {
-                CanvasPtr canvas(new TCanvas("muon_canvas_p4", "Muon Canvas: Lorentz Vector", 800, 640));
-                canvases.push_back(canvas);
-
-                canvas->Divide(2, 2);
-
-                canvas->cd(1);
-                h_muon_e->Draw();
-
-                canvas->cd(2);
-                h_muon_px->Draw();
-
-                canvas->cd(3);
-                h_muon_py->Draw();
-
-                canvas->cd(4);
-                h_muon_pz->Draw();
-            }
-
-            app->Run();
         }
     }
 
