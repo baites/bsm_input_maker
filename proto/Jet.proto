@@ -21,7 +21,7 @@ message Jet
         }
 
         required Type type = 1;
-        required double discriminant = 2;
+        required double discriminator = 2;
     }
 
     message Energy
