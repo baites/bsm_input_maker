@@ -25,6 +25,7 @@ message Input
         SINGLE_TOP_S_CHANNEL = 8;
         SINGLE_TOP_TW_CHANNEL = 9;
         WC = 10;
+        ZPRIME = 11;
     }
 
     message Info
