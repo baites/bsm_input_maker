@@ -7,8 +7,10 @@
 #include <vector>
 
 #include <boost/algorithm/string.hpp>
-#include <boost/regex.hpp>
+#include <boost/date_time/gregorian/gregorian.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/regex.hpp>
 
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 #include "DataFormats/Common/interface/TriggerResults.h"
@@ -57,7 +59,8 @@ using reco::Vertex;
 
 using bsm::InputMaker;
 
-InputMaker::InputMaker(const ParameterSet &config)
+InputMaker::InputMaker(const ParameterSet &config):
+    _input_type(Input::UNKNOWN)
 {
     GOOGLE_PROTOBUF_VERIFY_VERSION;
 
@@ -95,41 +98,7 @@ InputMaker::InputMaker(const ParameterSet &config)
             _hlt_pattern = "";
     }
 
-    _input_type = config.getParameter<string>("input_type");
-    to_lower(_input_type);
-
-    Input::Type type(Input::UNKNOWN);
-    if ("data" == _input_type)
-        type = Input::DATA;
-
-    else if ("ttbar" == _input_type)
-        type = Input::TTBAR;
-
-    else if ("qcd" == _input_type)
-        type = Input::QCD;
-
-    else if ("wjets" == _input_type)
-        type = Input::WJETS;
-
-    else if ("zjets" == _input_type)
-        type = Input::ZJETS;
-
-    else if ("vqq" == _input_type)
-        type = Input::VQQ;
-
-    else if ("single_top_t_channel" == _input_type)
-        type = Input::SINGLE_TOP_T_CHANNEL;
-
-    else if ("single_top_s_channel" == _input_type)
-        type = Input::SINGLE_TOP_S_CHANNEL;
-
-    else if ("single_top_tw_channel" == _input_type)
-        type = Input::SINGLE_TOP_TW_CHANNEL;
-
-    else if ("wc" == _input_type)
-        type = Input::WC;
-
-    _writer->input()->set_type(type);
+    setInputType(config.getParameter<string>("input_type"));
 }
 
 InputMaker::~InputMaker()
@@ -142,8 +111,18 @@ InputMaker::~InputMaker()
 
 void InputMaker::fileDidOpen(bsm::Writer *writer)
 {
+    using namespace boost::posix_time;
+    using namespace boost::gregorian;
+
     if (writer != _writer.get())
         return;
+
+    _writer->input()->set_type(_input_type);
+
+    ptime now_utc = second_clock::universal_time();
+    ptime epoch(date(1970, 1, 1));
+
+    _writer->input()->set_create_date((now_utc - epoch).total_seconds());
 
     for(Triggers::const_iterator hlt = _hlts.begin();
             _hlts.end() != hlt;
@@ -165,6 +144,44 @@ void InputMaker::fileDidClose(bsm::Writer *writer)
 
 // Privates
 //
+void InputMaker::setInputType(string type)
+{
+    to_lower(type);
+
+    if ("data" == type)
+        _input_type = Input::DATA;
+
+    else if ("ttbar" == type)
+        _input_type = Input::TTBAR;
+
+    else if ("qcd" == type)
+        _input_type = Input::QCD;
+
+    else if ("wjets" == type)
+        _input_type = Input::WJETS;
+
+    else if ("zjets" == type)
+        _input_type = Input::ZJETS;
+
+    else if ("vqq" == type)
+        _input_type = Input::VQQ;
+
+    else if ("single_top_t_channel" == type)
+        _input_type = Input::SINGLE_TOP_T_CHANNEL;
+
+    else if ("single_top_s_channel" == type)
+        _input_type = Input::SINGLE_TOP_S_CHANNEL;
+
+    else if ("single_top_tw_channel" == type)
+        _input_type = Input::SINGLE_TOP_TW_CHANNEL;
+
+    else if ("wc" == type)
+        _input_type = Input::WC;
+
+    else if ("zprime" == type)
+        _input_type = Input::ZPRIME;
+}
+
 void InputMaker::beginJob()
 {
 }
@@ -245,6 +262,9 @@ void InputMaker::beginRun(const edm::Run &run,
 void InputMaker::analyze(const edm::Event &event,
                         const edm::EventSetup &setup)
 {
+    if (!_writer->isOpen())
+        return;
+
     jets(event);
 
     pf_electrons(event);
@@ -258,7 +278,7 @@ void InputMaker::analyze(const edm::Event &event,
 
     triggers(event, setup);
 
-    _writer->write(*_event);
+    _writer->write(_event);
 
     _event->Clear();
 }
@@ -294,6 +314,8 @@ void InputMaker::jets(const edm::Event &event)
                 &jet->p4());
         utility::set(pb_jet->mutable_physics_object()->mutable_vertex(),
             &jet->vertex());
+
+        addBTags(pb_jet, &*jet);
 
         // Process children (constituents)
         //
@@ -616,6 +638,29 @@ void InputMaker::addHLTtoMap(const std::size_t &hash, const std::string &name)
     bsm::TriggerItem *item = info->add_triggers();
     item->set_hash(hash);
     item->set_name(name);
+}
+
+void InputMaker::addBTags(Jet *pb, const pat::Jet *pat)
+{
+    Jet::BTag *btag = pb->add_btags();
+    btag->set_type(Jet::BTag::TCHE);
+    btag->set_discriminator(
+            pat->bDiscriminator("trackCountingHighEffBJetTags"));
+
+    btag = pb->add_btags();
+    btag->set_type(Jet::BTag::TCHP);
+    btag->set_discriminator(
+            pat->bDiscriminator("trackCountingHighPurBJetTags"));
+
+    btag = pb->add_btags();
+    btag->set_type(Jet::BTag::SSVHE);
+    btag->set_discriminator(
+            pat->bDiscriminator("simpleSecondaryVertexHighEffBJetTags"));
+
+    btag = pb->add_btags();
+    btag->set_type(Jet::BTag::SSVHP);
+    btag->set_discriminator(
+            pat->bDiscriminator("simpleSecondaryVertexHighPurBJetTags"));
 }
 
 DEFINE_FWK_MODULE(InputMaker);

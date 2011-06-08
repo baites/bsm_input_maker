@@ -15,6 +15,8 @@
 #include "FWCore/Framework/interface/EDAnalyzer.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
+#include "bsm_input_maker/bsm_input/interface/bsm_input_fwd.h"
+#include "bsm_input_maker/bsm_input/interface/Input.pb.h"
 #include "bsm_input_maker/bsm_input/interface/Writer.h"
 
 class HLTConfigProvider;
@@ -28,11 +30,6 @@ namespace pat
 
 namespace bsm
 {
-    class Electron;
-    class Event;
-    class Muon;
-    class Writer;
-
     class InputMaker: public edm:: EDAnalyzer,
         public bsm::Writer::Delegate
     {
@@ -46,6 +43,8 @@ namespace bsm
             virtual void fileDidClose(bsm::Writer *);
 
         private:
+            void setInputType(std::string);
+
             virtual void beginJob();
             virtual void beginRun(const edm::Run &, const edm::EventSetup &);
             virtual void analyze(const edm::Event &, const edm::EventSetup &);
@@ -68,6 +67,7 @@ namespace bsm
             void fill(bsm::Muon *, const pat::Muon *);
 
             void addHLTtoMap(const std::size_t &hash, const std::string &name);
+            void addBTags(Jet *, const pat::Jet *);
 
             std::string _jets_tag;
 
@@ -83,7 +83,7 @@ namespace bsm
             std::string _hlts_tag;
             std::string _hlt_pattern;
 
-            std::string _input_type;
+            Input::Type _input_type;
 
             boost::shared_ptr<Writer> _writer;
             boost::shared_ptr<Event> _event;

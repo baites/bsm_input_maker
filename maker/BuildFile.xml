@@ -14,6 +14,6 @@
 <use name="PhysicsTools/SelectorUtils"/>
 <use name="bsm_input_maker/bsm_input"/>
 
-<flags CXXFLAGS="-I${CMSSW_BASE}/src/bsm_input_maker/input/interface"/>
+<flags CXXFLAGS="-I${CMSSW_BASE}/src/bsm_input_maker/input/interface -I${CMSSW_BASE}/src/bsm_input_maker"/>
 <flags LDFLAGS="-L/usr/lib -lprotobuf"/>
 <flags EDM_PLUGIN="1"/>
