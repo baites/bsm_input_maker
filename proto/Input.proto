@@ -39,9 +39,9 @@ message Input
     optional Type type = 1 [default = UNKNOWN];
     optional uint32 events = 2 [default = 0];
 
-    // Create date is a UTC time (milliseconds)
+    // Create date is a UTC time (seconds)
     //
-    optional fixed64 create_date = 3 [default = 0];
+    optional uint32 create_date = 3 [default = 0];
 
     optional Info info = 4;
 }
