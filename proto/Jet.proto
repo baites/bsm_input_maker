@@ -10,6 +10,20 @@ package bsm;
 
 message Jet
 {
+    message BTag
+    {
+        enum Type
+        {
+            TCHE = 0;
+            TCHP = 1;
+            SSVHE = 2;
+            SSVHP = 3;
+        }
+
+        required Type type = 1;
+        required double discriminant = 2;
+    }
+
     message Energy
     {
         optional double electron = 1;
@@ -36,4 +50,6 @@ message Jet
     optional Energy energy = 3;
     optional Extra extra = 4;
     repeated Child children = 5;
+
+    repeated BTag btags = 6;
 }
