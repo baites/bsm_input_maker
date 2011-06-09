@@ -186,7 +186,7 @@ double bsm::momentum(const LorentzVector &v)
 
 double bsm::phi(const LorentzVector &v)
 {
-    if (!v.px())
+    if (v.px())
         return atan2(v.py(), v.px());
 
     if (0 == v.py())
