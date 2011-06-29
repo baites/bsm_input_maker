@@ -13,4 +13,6 @@ message GenParticle
 
     required int32 id = 2;
     required int32 status = 3;
+
+    repeated GenParticle children = 4;
 }

@@ -6,6 +6,7 @@
 // Copyright 2011, All rights reserved
 
 import "Electron.proto";
+import "GenParticle.proto";
 import "Jet.proto";
 import "Muon.proto";
 import "MissingEnergy.proto";
@@ -29,4 +30,6 @@ message Event
     repeated Muon reco_muons = 7;
 
     repeated Trigger hlts = 8;
+
+    repeated GenParticle gen_particles = 9;
 }
