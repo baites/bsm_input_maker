@@ -12,8 +12,8 @@ message Electron
 {
     message Extra
     {
-        optional double d0_bsp = 1;
-        optional double super_cluster_eta = 2;
+        optional float d0_bsp = 1;
+        optional float super_cluster_eta = 2;
         optional uint32 inner_track_expected_hits = 3;
     }
 

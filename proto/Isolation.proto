@@ -7,7 +7,7 @@ package bsm;
 
 message Isolation
 {
-    optional double track = 1;
-    optional double ecal = 2;
-    optional double hcal = 3;
+    optional float track = 1;
+    optional float ecal = 2;
+    optional float hcal = 3;
 }

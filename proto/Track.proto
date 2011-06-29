@@ -8,5 +8,5 @@ package bsm;
 message Track
 {
     optional uint32 hits = 1;
-    optional double normalized_chi2 = 2;
+    optional float normalized_chi2 = 2;
 }

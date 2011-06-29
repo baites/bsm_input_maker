@@ -21,21 +21,21 @@ message Jet
         }
 
         required Type type = 1;
-        required double discriminator = 2;
+        required float discriminator = 2;
     }
 
     message Energy
     {
-        optional double electron = 1;
-        optional double muon = 2;
-        optional double photon = 3;
+        optional float electron = 1;
+        optional float muon = 2;
+        optional float photon = 3;
     }
 
     message Extra
     {
         optional uint32 constituents = 1;
         optional uint32 n90hits = 2;
-        optional double hpd = 3;
+        optional float hpd = 3;
     }
 
     message Child

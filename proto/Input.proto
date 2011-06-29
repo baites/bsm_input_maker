@@ -30,9 +30,9 @@ message Input
 
     message Info
     {
-        optional double xsection = 1;
-        optional double luminosity = 2;
-        optional double filter_efficiency = 3;
+        optional float xsection = 1;
+        optional float luminosity = 2;
+        optional float filter_efficiency = 3;
 
         repeated TriggerItem triggers = 4;
     }
