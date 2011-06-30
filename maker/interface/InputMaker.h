@@ -28,6 +28,11 @@ namespace pat
     class Muon;
 }
 
+namespace reco
+{
+    class Candidate;
+}
+
 namespace bsm
 {
     class InputMaker: public edm:: EDAnalyzer,
@@ -43,12 +48,22 @@ namespace bsm
             virtual void fileDidClose(bsm::Writer *);
 
         private:
+            enum
+            {
+                TOP = 6
+            };
+
             void setInputType(std::string);
 
             virtual void beginJob();
             virtual void beginRun(const edm::Run &, const edm::EventSetup &);
             virtual void analyze(const edm::Event &, const edm::EventSetup &);
             virtual void endJob();
+
+            void genParticles(const edm::Event &);
+            void products(bsm::GenParticle *,
+                    const reco::Candidate &,
+                    const uint32_t &level = 0);
 
             void jets(const edm::Event &);
 
@@ -68,6 +83,8 @@ namespace bsm
 
             void addHLTtoMap(const std::size_t &hash, const std::string &name);
             void addBTags(Jet *, const pat::Jet *);
+
+            std::string _gen_particles_tag;
 
             std::string _jets_tag;
 

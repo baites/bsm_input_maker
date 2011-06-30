@@ -4,6 +4,7 @@ InputMaker = cms.EDAnalyzer(
     'InputMaker',
     fileName = cms.string("input.pb"),
 
+    gen_particles = cms.string("prunedGenParticles"),
     jets = cms.string("goodPatJetsPFlow"),
 
     pf_electrons = cms.string("selectedPatElectronsLoosePFlow"),

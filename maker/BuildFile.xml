@@ -2,6 +2,7 @@
 <use name="boost"/>
 <use naem="CommonTools/UtilAlgos"/>
 <use name="DataFormats/Common"/>
+<use name="DataFormats/HepMCCandidate"/>
 <use name="DataFormats/PatCandidates"/>
 <use name="DataFormats/VertexReco"/>
 <use name="FWCore/Common"/>

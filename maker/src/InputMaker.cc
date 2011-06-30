@@ -14,6 +14,7 @@
 
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 #include "DataFormats/Common/interface/TriggerResults.h"
+#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include "DataFormats/PatCandidates/interface/Jet.h"
 #include "DataFormats/PatCandidates/interface/Electron.h"
 #include "DataFormats/PatCandidates/interface/MET.h"
@@ -56,6 +57,8 @@ using edm::ParameterSet;
 using edm::TriggerResults;
 
 using reco::Vertex;
+using reco::GenParticle;
+using reco::GenParticleCollection;
 
 using bsm::InputMaker;
 
@@ -69,6 +72,8 @@ InputMaker::InputMaker(const ParameterSet &config):
     _writer->open();
 
     _event.reset(new Event());
+
+    _gen_particles_tag = config.getParameter<string>("gen_particles");
 
     _jets_tag = config.getParameter<string>("jets");
 
@@ -265,6 +270,8 @@ void InputMaker::analyze(const edm::Event &event,
     if (!_writer->isOpen())
         return;
 
+    genParticles(event);
+
     jets(event);
 
     pf_electrons(event);
@@ -285,6 +292,56 @@ void InputMaker::analyze(const edm::Event &event,
 
 void InputMaker::endJob()
 {
+}
+
+void InputMaker::genParticles(const edm::Event &event)
+{
+    if (_gen_particles_tag.empty())
+        return;
+
+    if (event.isRealData())
+        return;
+
+    Handle<GenParticleCollection> gen_particles;
+    event.getByLabel(InputTag(_gen_particles_tag), gen_particles);
+
+    for(GenParticleCollection::const_iterator particle = gen_particles->begin();
+            gen_particles->end() != particle;
+            ++particle)
+    {
+        if (3 != particle->status()
+                || TOP != abs(particle->pdgId()))
+            continue;
+
+        products(_event->add_gen_particles(), *particle, 2);
+    }
+}
+
+void InputMaker::products(bsm::GenParticle *pb_particle,
+        const reco::Candidate &particle,
+        const uint32_t &level)
+{
+    pb_particle->set_id(particle.pdgId());
+    pb_particle->set_status(particle.status());
+
+    utility::set(pb_particle->mutable_physics_object()->mutable_p4(),
+            &particle.p4());
+
+    utility::set(pb_particle->mutable_physics_object()->mutable_vertex(),
+            &particle.vertex());
+
+    if (!level)
+        return;
+
+    for(reco::Candidate::const_iterator product = particle.begin();
+            particle.end() != product;
+            ++product)
+    {
+        if (3 != product->status())
+            continue;
+
+        products(pb_particle->add_children(), *product, level - 1);
+    }
 }
 
 void InputMaker::jets(const edm::Event &event)
@@ -317,6 +374,7 @@ void InputMaker::jets(const edm::Event &event)
 
         addBTags(pb_jet, &*jet);
 
+        /*
         // Process children (constituents)
         //
         for(uint32_t i = 0, max = jet->numberOfDaughters(); max > i; ++i)
@@ -332,6 +390,7 @@ void InputMaker::jets(const edm::Event &event)
             utility::set(pb_child->mutable_physics_object()->mutable_vertex(),
                     &child->vertex());
         }
+        */
 
         // Skip the rest if Generator Parton is not found for the jet
         //
