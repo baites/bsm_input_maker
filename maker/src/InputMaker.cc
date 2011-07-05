@@ -550,12 +550,13 @@ void InputMaker::primaryVertices(const edm::Event &event)
             primary_vertices->end() != vertex;
             ++vertex)
     {
-        if (!selector::isGoodPrimaryVertex(*vertex, event.isRealData()))
-            continue;
-
         bsm::PrimaryVertex *pb_vertex = _event->add_primary_vertices();
 
         utility::set(pb_vertex->mutable_vertex(), &vertex->position());
+
+        bsm::PrimaryVertex::Extra *extra = pb_vertex->mutable_extra();
+        extra->set_ndof(vertex->ndof());
+        extra->set_rho(vertex->position().Rho());
     }
 }
 
