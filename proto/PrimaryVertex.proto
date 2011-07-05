@@ -9,5 +9,12 @@ package bsm;
 
 message PrimaryVertex
 {
+    message Extra
+    {
+        optional float rho = 1;
+        optional uint32 ndof = 2;
+    }
+
     required Vector vertex = 1;
+    optional Extra extra = 2;
 }
