@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Submit 1 condor job per file found in the input.txtf with given CMSSW config
 
 if [[ 2 -ne $# ]]
 then
