@@ -17,6 +17,13 @@ package bsm;
 
 message Event
 {
+    message Extra
+    {
+        optional uint32 id = 1;
+        optional uint32 run = 2;
+        optional uint32 lumi = 3;
+    }
+
     repeated PrimaryVertex primary_vertices = 1;
     optional MissingEnergy missing_energy = 2;
 
@@ -32,4 +39,6 @@ message Event
     repeated Trigger hlts = 8;
 
     repeated GenParticle gen_particles = 9;
+
+    optional Extra extra = 10;
 }
