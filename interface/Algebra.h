@@ -6,11 +6,10 @@
 #ifndef BSM_IO_ALGEBRA
 #define BSM_IO_ALGEBRA
 
+#include "bsm_input/interface/bsm_input_fwd.h"
+
 namespace bsm
 {
-    class LorentzVector;
-    class Vector;
-
     extern const double pi;
 
     LorentzVector &operator +=(LorentzVector &, const LorentzVector &);
@@ -36,6 +35,8 @@ namespace bsm
     double momentum(const LorentzVector &);
     double phi(const LorentzVector &);
     double pt(const LorentzVector &);
+
+    bool operator ==(const Event_Extra &, const Event_Extra &);
 }
 
 #endif

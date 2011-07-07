@@ -6,6 +6,7 @@
 #include <cmath>
 #include <cfloat>
 
+#include "bsm_input/interface/Event.pb.h"
 #include "bsm_input/interface/Physics.pb.h"
 #include "bsm_input/interface/Algebra.h"
 
@@ -200,4 +201,11 @@ double bsm::phi(const LorentzVector &v)
 double bsm::pt(const LorentzVector &v)
 {
     return sqrt(v.px() * v.px() + v.py() * v.py());
+}
+
+bool bsm::operator ==(const Event_Extra &e1, const Event_Extra &e2)
+{
+    return e1.run() == e2.run()
+        && e1.lumi() == e2.lumi()
+        && e1.id() == e2.id();
 }
