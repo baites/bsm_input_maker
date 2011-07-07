@@ -8,11 +8,10 @@
 
 #include <iosfwd>
 
+#include "bsm_input/interface/bsm_input_fwd.h"
+
 namespace bsm
 {
-    class LorentzVector;
-    class Vector;
-
     std::ostream &operator <<(std::ostream &, const LorentzVector &);
     std::ostream &operator <<(std::ostream &, const Vector &);
 }
