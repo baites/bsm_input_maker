@@ -13,6 +13,7 @@ namespace bsm
 
     class Electron;
     class Event;
+    class Event_Extra;
     class GenParticle;
     class Input;
     class Isolation;
