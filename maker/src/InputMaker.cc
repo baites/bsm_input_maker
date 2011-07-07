@@ -270,6 +270,10 @@ void InputMaker::analyze(const edm::Event &event,
     if (!_writer->isOpen())
         return;
 
+    _event->mutable_extra()->set_id(event.id().event());
+    _event->mutable_extra()->set_run(event.id().run());
+    _event->mutable_extra()->set_lumi(event.id().luminosityBlock());
+
     genParticles(event);
 
     jets(event);
@@ -432,10 +436,12 @@ void InputMaker::pf_electrons(const edm::Event &event)
             electrons->end() != electron;
             ++electron)
     {
+        /*
         SimpleCutBasedElectronIDSelectionFunctor electronID(SimpleCutBasedElectronIDSelectionFunctor::cIso70);
 
         if (!electronID(*electron))
             continue;
+            */
 
         bsm::Electron *pb_electron = _event->add_pf_electrons();
 
@@ -464,10 +470,12 @@ void InputMaker::gsf_electrons(const edm::Event &event)
             electrons->end() != electron;
             ++electron)
     {
+        /*
         SimpleCutBasedElectronIDSelectionFunctor electronID(SimpleCutBasedElectronIDSelectionFunctor::cIso70);
 
         if (!electronID(*electron))
             continue;
+            */
 
         bsm::Electron *pb_electron = _event->add_gsf_electrons();
 
