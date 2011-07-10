@@ -52,4 +52,5 @@ message Jet
     repeated Child children = 5;
 
     repeated BTag btags = 6;
+    optional LorentzVector uncorrected_p4 = 7;
 }
