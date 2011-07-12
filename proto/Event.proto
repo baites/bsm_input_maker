@@ -24,6 +24,12 @@ message Event
         optional uint32 lumi = 3;
     }
 
+    message Filters
+    {
+        optional bool scraping_veto = 1;
+        optional bool hbhe_noise = 2;
+    }
+
     repeated PrimaryVertex primary_vertices = 1;
     optional MissingEnergy missing_energy = 2;
 
@@ -41,4 +47,5 @@ message Event
     repeated GenParticle gen_particles = 9;
 
     optional Extra extra = 10;
+    optional Filters filters = 11;
 }
