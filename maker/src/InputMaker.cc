@@ -376,6 +376,9 @@ void InputMaker::jets(const edm::Event &event)
         utility::set(pb_jet->mutable_physics_object()->mutable_vertex(),
             &jet->vertex());
 
+        utility::set(pb_jet->mutable_uncorrected_p4(),
+                &jet->correctedP4(0));
+
         addBTags(pb_jet, &*jet);
 
         /*
@@ -395,6 +398,21 @@ void InputMaker::jets(const edm::Event &event)
                     &child->vertex());
         }
         */
+
+        typedef std::vector<reco::PFCandidatePtr> Constituents;
+        
+        const Constituents &constituents = jet->getPFConstituents();
+        for(Constituents::const_iterator child = constituents.begin();
+                constituents.end() != child;
+                ++child)
+        {
+            bsm::Jet::Child *pb_child = pb_jet->add_children();
+
+            utility::set(pb_child->mutable_physics_object()->mutable_p4(),
+                    &(*child)->p4());
+            utility::set(pb_child->mutable_physics_object()->mutable_vertex(),
+                    &(*child)->vertex());
+        }
 
         // Skip the rest if Generator Parton is not found for the jet
         //
