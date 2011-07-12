@@ -6,6 +6,7 @@ InputMaker = cms.EDAnalyzer(
 
     gen_particles = cms.string("prunedGenParticles"),
     jets = cms.string("goodPatJetsPFlow"),
+    rho = cms.string("kt6PFJetsPFlow"),
 
     pf_electrons = cms.string("selectedPatElectronsLoosePFlow"),
     gsf_electrons = cms.string("selectedPatElectrons"),

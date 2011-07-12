@@ -76,7 +76,7 @@ namespace bsm
             void primaryVertices(const edm::Event &);
             void met(const edm::Event &);
 
-            void triggers(const edm::Event &, const edm::EventSetup &);
+            bool triggers(const edm::Event &, const edm::EventSetup &);
 
             void fill(bsm::Electron *, const pat::Electron *);
             void fill(bsm::Muon *, const pat::Muon *);
@@ -87,6 +87,7 @@ namespace bsm
             std::string _gen_particles_tag;
 
             std::string _jets_tag;
+            std::string _rho_tag;
 
             std::string _pf_electrons_tag;
             std::string _gsf_electrons_tag;

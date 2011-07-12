@@ -76,6 +76,7 @@ InputMaker::InputMaker(const ParameterSet &config):
     _gen_particles_tag = config.getParameter<string>("gen_particles");
 
     _jets_tag = config.getParameter<string>("jets");
+    _rho_tag = config.getParameter<string>("rho");
 
     _pf_electrons_tag = config.getParameter<string>("pf_electrons");
     _gsf_electrons_tag = config.getParameter<string>("gsf_electrons");
@@ -274,20 +275,28 @@ void InputMaker::analyze(const edm::Event &event,
     _event->mutable_extra()->set_run(event.id().run());
     _event->mutable_extra()->set_lumi(event.id().luminosityBlock());
 
-    genParticles(event);
+    if (triggers(event, setup))
+    {
+        if (!_rho_tag.empty())
+        {
+            Handle<double> rho;
+            event.getByLabel(edm::InputTag(_rho_tag, "rho"), rho);
+            _event->mutable_extra()->set_rho(*rho);
+        }
 
-    jets(event);
+        genParticles(event);
 
-    pf_electrons(event);
-    gsf_electrons(event);
+        jets(event);
 
-    pf_muons(event);
-    reco_muons(event);
+        pf_electrons(event);
+        gsf_electrons(event);
 
-    primaryVertices(event);
-    met(event);
+        pf_muons(event);
+        reco_muons(event);
 
-    triggers(event, setup);
+        primaryVertices(event);
+        met(event);
+    }
 
     _writer->write(_event);
 
@@ -380,6 +389,8 @@ void InputMaker::jets(const edm::Event &event)
                 &jet->correctedP4(0));
 
         addBTags(pb_jet, &*jet);
+
+        pb_jet->mutable_extra()->set_area(jet->jetArea());
 
         /*
         // Process children (constituents)
@@ -616,13 +627,13 @@ void InputMaker::met(const edm::Event &event)
             &mets->begin()->p4());
 }
 
-void InputMaker::triggers(const edm::Event &event,
+bool InputMaker::triggers(const edm::Event &event,
         const edm::EventSetup &setup)
 {
     if (_hlts_tag.empty()
             || !_hlt_config
             || _hlts.empty())
-        return;
+        return true;
 
     Handle<TriggerResults> hlts;
     event.getByLabel(InputTag(_hlts_tag), hlts);
@@ -632,9 +643,9 @@ void InputMaker::triggers(const edm::Event &event,
         LogWarning("InputMaker")
             << "failed to extract HLTs";
 
-        return;
+        return false;
     }
-    
+
     for(Triggers::const_iterator hlt = _hlts.begin();
             _hlts.end() != hlt;
             ++hlt)
@@ -646,8 +657,19 @@ void InputMaker::triggers(const edm::Event &event,
         pb_hlt->set_pass(hlts->accept(hlt->first));
         pb_hlt->set_version(hlt->second.version);
         pb_hlt->set_prescale(1);
+
         //pb_hlt->set_prescale(_hlt_config->prescaleValue(event, setup, hlt->second.full_name));
+        //
     }
+
+    edm::TriggerResultsByName resultsByNameHLT = event.triggerResultsByName("PAT");
+    const bool scraping_veto = resultsByNameHLT.accept("filter_scraping");
+    const bool hbhe_noise = resultsByNameHLT.accept("filter_hbhenoise");
+    _event->mutable_filters()->set_scraping_veto(scraping_veto);
+    _event->mutable_filters()->set_hbhe_noise(hbhe_noise);
+
+    return scraping_veto
+        && hbhe_noise;
 }
 
 void InputMaker::fill(bsm::Electron *pb_electron, const pat::Electron *electron)
