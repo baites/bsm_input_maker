@@ -36,6 +36,7 @@ message Jet
         optional uint32 constituents = 1;
         optional uint32 n90hits = 2;
         optional float hpd = 3;
+        optional float area = 4;
     }
 
     message Child
