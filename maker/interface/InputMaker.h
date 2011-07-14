@@ -44,8 +44,7 @@ namespace bsm
 
             // Writer::Delegate interface
             //
-            virtual void fileDidOpen(bsm::Writer *);
-            virtual void fileDidClose(bsm::Writer *);
+            virtual void fileDidOpen(const bsm::Writer *);
 
         private:
             enum

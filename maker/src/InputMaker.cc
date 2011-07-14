@@ -115,7 +115,7 @@ InputMaker::~InputMaker()
     google::protobuf::ShutdownProtobufLibrary();
 }
 
-void InputMaker::fileDidOpen(bsm::Writer *writer)
+void InputMaker::fileDidOpen(const bsm::Writer *writer)
 {
     using namespace boost::posix_time;
     using namespace boost::gregorian;
@@ -136,14 +136,8 @@ void InputMaker::fileDidOpen(bsm::Writer *writer)
     {
         addHLTtoMap(hlt->second.hash, hlt->second.name);
     }
-}
 
-void InputMaker::fileDidClose(bsm::Writer *writer)
-{
-    if (writer != _writer.get())
-        return;
-
-    _writer->input()->mutable_info()->mutable_triggers()->Clear();
+    LogWarning("InputMaker") << "file did open";
 }
 
 
