@@ -24,8 +24,6 @@ echo
 echo $LD_LIBRARY_PATH
 echo
 
-cp PWD/input.txt .
-cp PWD/cmssw_cfg.py .
-cmsRun cmssw_cfg.py
+cmsRun cmssw_cfg.py useData=0
 
 exit 0
