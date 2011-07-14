@@ -3,6 +3,7 @@
 <use naem="CommonTools/UtilAlgos"/>
 <use name="DataFormats/Common"/>
 <use name="DataFormats/HepMCCandidate"/>
+<use name="DataFormats/Math"/>
 <use name="DataFormats/PatCandidates"/>
 <use name="DataFormats/VertexReco"/>
 <use name="FWCore/Common"/>
@@ -11,6 +12,8 @@
 <use name="FWCore/ParameterSet"/>
 <use name="FWCore/ServiceRegistry"/>
 <use name="FWCore/Utilities"/>
+<use name="JetMETCorrections/Objects"/>
+<use name="JetMETCorrections/Modules"/>
 <use name="HLTrigger/HLTcore"/>
 <use name="PhysicsTools/SelectorUtils"/>
 <use name="bsm_input_maker/bsm_input"/>
