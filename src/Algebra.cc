@@ -40,6 +40,16 @@ LorentzVector &bsm::operator -=(LorentzVector &v1, const LorentzVector &v2)
     return v1;
 }
 
+LorentzVector &bsm::operator *=(LorentzVector &v1, const float &jec)
+{
+    v1.set_e(v1.e() * jec);
+    v1.set_px(v1.px() * jec);
+    v1.set_py(v1.py() * jec);
+    v1.set_pz(v1.pz() * jec);
+
+    return v1;
+}
+
 LorentzVector bsm::operator +(const LorentzVector &v1, const LorentzVector &v2)
 {
     LorentzVector v;

@@ -14,6 +14,7 @@ namespace bsm
 
     LorentzVector &operator +=(LorentzVector &, const LorentzVector &);
     LorentzVector &operator -=(LorentzVector &, const LorentzVector &);
+    LorentzVector &operator *=(LorentzVector &, const float &);
 
     LorentzVector operator +(const LorentzVector &, const LorentzVector &);
     LorentzVector operator -(const LorentzVector &, const LorentzVector &);
