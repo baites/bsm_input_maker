@@ -136,8 +136,6 @@ void InputMaker::fileDidOpen(const bsm::Writer *writer)
     {
         addHLTtoMap(hlt->second.hash, hlt->second.name);
     }
-
-    LogWarning("InputMaker") << "file did open";
 }
 
 
