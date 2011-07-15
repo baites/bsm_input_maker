@@ -19,11 +19,17 @@ namespace bsm
     LorentzVector operator +(const LorentzVector &, const LorentzVector &);
     LorentzVector operator -(const LorentzVector &, const LorentzVector &);
 
+    bool operator ==(const LorentzVector &, const LorentzVector &);
+    bool operator !=(const LorentzVector &, const LorentzVector &);
+
     Vector &operator +=(Vector &, const Vector &);
     Vector &operator -=(Vector &, const Vector &);
 
     Vector operator +(const Vector &, const Vector &);
     Vector operator -(const Vector &, const Vector &);
+
+    bool operator ==(const Vector &, const Vector &);
+    bool operator !=(const Vector &, const Vector &);
 
     double operator *(const LorentzVector &, const LorentzVector &);
 

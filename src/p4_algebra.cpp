@@ -6,6 +6,7 @@
 // Copyright 2011, All rights reserved
 
 #include <string>
+#include <iostream>
 
 #include <boost/shared_ptr.hpp>
 
@@ -228,6 +229,11 @@ int main(int argc, char *argv[])
         delta_v->fill(v1, v2);
         delta_tv->fill(tv1, tv2);
     }
+
+    cout << "v1 == v1: " << (*v1 == *v1 ? "true" : "false") << endl;
+    cout << "v1 != v1: " << (*v1 != *v1 ? "true" : "false") << endl;
+    cout << "v1 == v2: " << (*v1 == *v2 ? "true" : "false") << endl;
+    cout << "v1 != v2: " << (*v1 != *v2 ? "true" : "false") << endl;
 
     int empty_argc = 1;
     char *empty_argv[] = { argv[0] };

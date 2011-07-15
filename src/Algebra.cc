@@ -70,6 +70,19 @@ LorentzVector bsm::operator -(const LorentzVector &v1, const LorentzVector &v2)
     return v;
 }
 
+bool bsm::operator ==(const LorentzVector &v1, const LorentzVector &v2)
+{
+    return v1.e() == v2.e()
+        && v1.px() == v2.px()
+        && v1.py() == v2.py()
+        && v1.pz() == v2.pz();
+}
+
+bool bsm::operator !=(const LorentzVector &v1, const LorentzVector &v2)
+{
+    return !(v1 == v2);
+}
+
 Vector &bsm::operator +=(Vector &v1, const Vector &v2)
 {
     v1.set_x(v1.x() + v2.x());
@@ -106,6 +119,18 @@ Vector bsm::operator -(const Vector &v1, const Vector &v2)
     v -= v2;
 
     return v;
+}
+
+bool bsm::operator ==(const Vector &v1, const Vector &v2)
+{
+    return v1.x() == v2.x()
+        && v1.y() == v2.y()
+        && v1.z() == v2.z();
+}
+
+bool bsm::operator !=(const Vector &v1, const Vector &v2)
+{
+    return !(v1 == v2);
 }
 
 double bsm::operator *(const LorentzVector &v1, const LorentzVector &v2)
