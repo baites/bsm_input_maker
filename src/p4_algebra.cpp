@@ -256,10 +256,10 @@ int main(int argc, char *argv[])
 
 void fill(const RandomPtr &r, const P4Ptr &v, const TP4Ptr &t)
 {
-    double e = r->Gaus(r->Uniform(50, 150), r->Uniform(2, 10));
-    double px = r->Gaus(r->Uniform(20, 80), r->Uniform(2, 10));
-    double py = r->Gaus(r->Uniform(20, 80), r->Uniform(2, 10));
-    double pz = r->Gaus(r->Uniform(20, 80), r->Uniform(2, 10));
+    float e = r->Gaus(r->Uniform(50, 150), r->Uniform(2, 10));
+    float px = r->Gaus(r->Uniform(20, 80), r->Uniform(2, 10));
+    float py = r->Gaus(r->Uniform(20, 80), r->Uniform(2, 10));
+    float pz = r->Gaus(r->Uniform(20, 80), r->Uniform(2, 10));
 
     v->set_e(e);
     v->set_px(px);
