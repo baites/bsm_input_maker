@@ -71,7 +71,7 @@ $(PROTOCOBJS): $(MESSAGES)
 
 # Regular compilcation
 #
-$(OBJS): $(SRCS) $(HEADS)
+$(OBJS): pb $(SRCS) $(HEADS)
 	@echo "[+] Compiling objects ..."
 	$(CCC) $(CXXFLAGS) -c $(addprefix ./src/,$(patsubst %.o,%.cc,$(notdir $@))) -o $@
 	@echo
