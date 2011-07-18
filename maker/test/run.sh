@@ -24,6 +24,6 @@ echo
 echo $LD_LIBRARY_PATH
 echo
 
-cmsRun cmssw_cfg.py useData=0
+cmsRun cmssw_cfg.py $@
 
 exit 0
