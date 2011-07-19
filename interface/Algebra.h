@@ -12,6 +12,8 @@ namespace bsm
 {
     extern const float pi;
 
+    // Lorentz Vector algebra
+    //
     LorentzVector &operator +=(LorentzVector &, const LorentzVector &);
     LorentzVector &operator -=(LorentzVector &, const LorentzVector &);
     LorentzVector &operator *=(LorentzVector &, const float &);
@@ -21,15 +23,6 @@ namespace bsm
 
     bool operator ==(const LorentzVector &, const LorentzVector &);
     bool operator !=(const LorentzVector &, const LorentzVector &);
-
-    Vector &operator +=(Vector &, const Vector &);
-    Vector &operator -=(Vector &, const Vector &);
-
-    Vector operator +(const Vector &, const Vector &);
-    Vector operator -(const Vector &, const Vector &);
-
-    bool operator ==(const Vector &, const Vector &);
-    bool operator !=(const Vector &, const Vector &);
 
     float operator *(const LorentzVector &, const LorentzVector &);
 
@@ -42,7 +35,31 @@ namespace bsm
     float momentum(const LorentzVector &);
     float phi(const LorentzVector &);
     float pt(const LorentzVector &);
+    float ptrel(const LorentzVector &v1, const LorentzVector &v2);
 
+
+
+    // Vector algebra
+    //
+    Vector toVector(const LorentzVector &);
+
+    Vector &operator +=(Vector &, const Vector &);
+    Vector &operator -=(Vector &, const Vector &);
+
+    Vector operator +(const Vector &, const Vector &);
+    Vector operator -(const Vector &, const Vector &);
+
+    bool operator ==(const Vector &, const Vector &);
+    bool operator !=(const Vector &, const Vector &);
+
+        // Scalar multiplication
+        //
+    float operator *(const Vector &, const Vector &);
+
+
+
+    // Miscellaneous
+    //
     bool operator ==(const Event_Extra &, const Event_Extra &);
 }
 

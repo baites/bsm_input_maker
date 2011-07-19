@@ -149,6 +149,7 @@ struct Delta
 
     H1Ptr _dphi;
     H1Ptr _dr;
+    H1Ptr _ptrel;
 
     CanvasPtr _canvas;
 };
@@ -164,18 +165,29 @@ Delta::Delta()
     _dr->SetDirectory(0);
     _dr->Sumw2();
     _dr->SetBins(100, 0, 10);
+
+    _ptrel.reset(new TH1D());
+    _ptrel->SetDirectory(0);
+    _ptrel->Sumw2();
+    _ptrel->SetBins(100, 0, 10);
 }
 
 void Delta::fill(const P4Ptr &v1, const P4Ptr &v2)
 {
     _dphi->Fill(dphi(*v1, *v2));
     _dr->Fill(dr(*v1, *v2));
+    const float value = ptrel(*v1, *v2);
+    cout << " LV ptrel: " << value << endl;
+    _ptrel->Fill(value);
 }
 
 void Delta::fill(const TP4Ptr &v1, const TP4Ptr &v2)
 {
     _dphi->Fill(v1->DeltaPhi(*v2));
     _dr->Fill(v1->DeltaR(*v2));
+    const float value = v1->Vect().Perp(v2->Vect());
+    cout << "TLV ptrel: " << value << endl;
+    _ptrel->Fill(value);
 }
 
 void Delta::draw(const string &name, const string &title)
@@ -183,8 +195,8 @@ void Delta::draw(const string &name, const string &title)
     if (_canvas)
         return;
 
-    _canvas.reset(new TCanvas(name.c_str(), title.c_str(), 640, 320));
-    _canvas->Divide(2);
+    _canvas.reset(new TCanvas(name.c_str(), title.c_str(), 1024, 320));
+    _canvas->Divide(3);
 
     _canvas->cd(1);
     _dphi->GetXaxis()->SetTitle("#Delta #phi");
@@ -193,6 +205,10 @@ void Delta::draw(const string &name, const string &title)
     _canvas->cd(2);
     _dr->GetXaxis()->SetTitle("#Delta R");
     _dr->Draw("hist");
+
+    _canvas->cd(3);
+    _ptrel->GetXaxis()->SetTitle("p_{T}^{rel} [GeV/c]");
+    _ptrel->Draw("hist");
 }
 
 void fill(const RandomPtr &, const P4Ptr &, const TP4Ptr &);

@@ -15,6 +15,8 @@ using bsm::Vector;
 
 const float bsm::pi = 3.14159265358979323846;
 
+// Lorentz Vector algebra
+//
 LorentzVector &bsm::operator +=(LorentzVector &v1, const LorentzVector &v2)
 {
     v1.set_e(v1.e() + v2.e());
@@ -79,56 +81,6 @@ bool bsm::operator ==(const LorentzVector &v1, const LorentzVector &v2)
 }
 
 bool bsm::operator !=(const LorentzVector &v1, const LorentzVector &v2)
-{
-    return !(v1 == v2);
-}
-
-Vector &bsm::operator +=(Vector &v1, const Vector &v2)
-{
-    v1.set_x(v1.x() + v2.x());
-    v1.set_y(v1.y() + v2.y());
-    v1.set_z(v1.z() + v2.z());
-
-    return v1;
-}
-
-Vector &bsm::operator -=(Vector &v1, const Vector &v2)
-{
-    v1.set_x(v1.x() - v2.x());
-    v1.set_y(v1.y() - v2.y());
-    v1.set_z(v1.z() - v2.z());
-
-    return v1;
-}
-
-Vector bsm::operator +(const Vector &v1, const Vector &v2)
-{
-    Vector v;
-
-    v += v1;
-    v += v2;
-
-    return v;
-}
-
-Vector bsm::operator -(const Vector &v1, const Vector &v2)
-{
-    Vector v;
-
-    v += v1;
-    v -= v2;
-
-    return v;
-}
-
-bool bsm::operator ==(const Vector &v1, const Vector &v2)
-{
-    return v1.x() == v2.x()
-        && v1.y() == v2.y()
-        && v1.z() == v2.z();
-}
-
-bool bsm::operator !=(const Vector &v1, const Vector &v2)
 {
     return !(v1 == v2);
 }
@@ -238,6 +190,97 @@ float bsm::pt(const LorentzVector &v)
     return sqrt(v.px() * v.px() + v.py() * v.py());
 }
 
+float bsm::ptrel(const LorentzVector &v1, const LorentzVector &v2)
+{
+    Vector pt1 = toVector(v1);
+    Vector pt2 = toVector(v2);
+
+    const float pt1_momentum = momentum(v1);
+    const float pt2_momentum = momentum(v2);
+    const float pt1_dot_pt2 = pt1 * pt2;
+
+    return pt2_momentum
+        ? sqrt((pt1_momentum * pt1_momentum)
+                - (pt1_dot_pt2 * pt1_dot_pt2) / (pt2_momentum * pt2_momentum))
+        : 0;
+}
+
+
+
+// Vector algebra
+//
+Vector bsm::toVector(const LorentzVector &v)
+{
+    Vector result;
+
+    result.set_x(v.px());
+    result.set_y(v.py());
+    result.set_z(v.pz());
+
+    return result;
+}
+
+Vector &bsm::operator +=(Vector &v1, const Vector &v2)
+{
+    v1.set_x(v1.x() + v2.x());
+    v1.set_y(v1.y() + v2.y());
+    v1.set_z(v1.z() + v2.z());
+
+    return v1;
+}
+
+Vector &bsm::operator -=(Vector &v1, const Vector &v2)
+{
+    v1.set_x(v1.x() - v2.x());
+    v1.set_y(v1.y() - v2.y());
+    v1.set_z(v1.z() - v2.z());
+
+    return v1;
+}
+
+Vector bsm::operator +(const Vector &v1, const Vector &v2)
+{
+    Vector v;
+
+    v += v1;
+    v += v2;
+
+    return v;
+}
+
+Vector bsm::operator -(const Vector &v1, const Vector &v2)
+{
+    Vector v;
+
+    v += v1;
+    v -= v2;
+
+    return v;
+}
+
+bool bsm::operator ==(const Vector &v1, const Vector &v2)
+{
+    return v1.x() == v2.x()
+        && v1.y() == v2.y()
+        && v1.z() == v2.z();
+}
+
+bool bsm::operator !=(const Vector &v1, const Vector &v2)
+{
+    return !(v1 == v2);
+}
+
+float bsm::operator *(const Vector &v1, const Vector &v2)
+{
+    return v1.x() * v2.x()
+        + v1.y() * v2.y()
+        + v1.z() * v2.z();
+}
+
+
+
+// Miscellaneous
+//
 bool bsm::operator ==(const Event_Extra &e1, const Event_Extra &e2)
 {
     return e1.run() == e2.run()
