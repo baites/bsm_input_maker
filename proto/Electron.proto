@@ -21,4 +21,5 @@ message Electron
 
     optional Isolation isolation = 2;
     optional Extra extra = 3;
+    optional PFIsolation pf_isolation = 4;
 }

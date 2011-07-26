@@ -26,4 +26,5 @@ message Muon
     optional Track inner_track = 3;
     optional Track global_track = 4;
     optional Extra extra = 5;
+    optional PFIsolation pf_isolation = 6;
 }

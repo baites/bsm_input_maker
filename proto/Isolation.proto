@@ -11,3 +11,11 @@ message Isolation
     optional float ecal = 2;
     optional float hcal = 3;
 }
+
+message PFIsolation
+{
+    optional float particle = 1;
+    optional float charged_hadron = 2;
+    optional float neutral_hadron = 3;
+    optional float photon = 4;
+}
