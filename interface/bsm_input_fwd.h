@@ -22,6 +22,7 @@ namespace bsm
     class Muon;
     class LorentzVector;
     class Vector;
+    class PFIsolation;
     class PhysicsObject;
     class Tracck;
     class Trigger;
