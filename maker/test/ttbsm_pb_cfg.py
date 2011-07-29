@@ -228,6 +228,13 @@ from RecoJets.JetProducers.GenJetParameters_cfi import *
 
 # Default PF2PAT with AK5 jets. Make sure to turn ON the L1fastjet stuff. 
 from PhysicsTools.PatAlgos.tools.pfTools import *
+
+# usePV should be set before usePF2PAT function is called since all other
+# collections of leptons are cloned from patMuons, patElectrons
+process.patMuons.usePV = cms.bool(False)
+process.patElectrons.usePV = cms.bool(False)
+process.patJets.addTagInfos = cms.bool(True)
+
 postfix = "PFlow"
 usePF2PAT(process,runPF2PAT=True, jetAlgo='AK5', runOnMC=not options.useData, postfix=postfix)
 process.pfPileUpPFlow.Enable = True
@@ -239,8 +246,6 @@ process.patJetCorrFactorsPFlow.levels = inputJetCorrLabel[1]
 process.patJetCorrFactorsPFlow.rho = cms.InputTag("kt6PFJetsPFlow", "rho")
 if not options.use41x and not options.forceCheckClosestZVertex :
     process.pfPileUpPFlow.checkClosestZVertex = False
-
-
 
 # --+++ Loose Muonse ==--
 
@@ -512,7 +517,13 @@ for imod in [process.patMuonsPFlow,
              process.patElectrons] :
     imod.pvSrc = "goodOfflinePrimaryVertices"
     imod.embedTrack = True
-    
+
+for module in [process.pfElectronsFromVertexPFlow,
+                process.pfMuonsFromVertexPFlow]:
+    module.vertices = "goodOfflinePrimaryVertices"
+
+for module in [process.patJetCorrFactors]:
+    module.primaryVertices = "goodOfflinePrimaryVertices"
 
 addJetCollection(process, 
                  cms.InputTag('ca8PFJetsPFlow'),         # Jet collection; must be already in the event when patLayer0 sequence is executed
@@ -671,11 +682,11 @@ process.InputMaker.hlt_pattern = cms.string("hlt_ele*calo*")
 # let it run
 
 process.patseq = cms.Sequence(
-    process.scrapingVeto *
-    process.HBHENoiseFilter *
+#    process.scrapingVeto *
+#    process.HBHENoiseFilter *
 #    process.offlinePrimaryVerticesDAF*    
     process.goodOfflinePrimaryVertices*
-#    process.primaryVertexFilter*
+    process.primaryVertexFilter*
     process.genParticlesForJetsNoNu*
     process.ca8GenJetsNoNu*
     getattr(process,"patPF2PATSequence"+postfix)*
@@ -793,6 +804,7 @@ process.out.outputCommands = [
     'keep *_prunedGenParticles_*_*',
     'drop recoPFCandidates_selectedPatJets*_*_*',
     'drop CaloTowers_selectedPatJets*_*_*'
+    ,'keep *_electronGsfTracks_*_*',
     #'keep recoTracks_generalTracks_*_*'
     ]
 
