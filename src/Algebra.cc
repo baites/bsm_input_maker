@@ -125,8 +125,7 @@ float bsm::et(const LorentzVector &v)
 {
     float p = momentum(v);
 
-    if (0 == p
-            || 0 == v.pz())
+    if (0 == p)
     {
         return 0;
     }
