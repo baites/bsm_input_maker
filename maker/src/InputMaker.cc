@@ -657,11 +657,11 @@ bool InputMaker::triggers(const edm::Event &event,
     edm::TriggerResultsByName resultsByNameHLT = event.triggerResultsByName("PAT");
     const bool scraping_veto = resultsByNameHLT.accept("filter_scraping");
     const bool hbhe_noise = resultsByNameHLT.accept("filter_hbhenoise");
+    const bool pat_sequence = resultsByNameHLT.accept("p0");
     _event->mutable_filters()->set_scraping_veto(scraping_veto);
     _event->mutable_filters()->set_hbhe_noise(hbhe_noise);
 
-    return scraping_veto
-        && hbhe_noise;
+    return pat_sequence;
 }
 
 void InputMaker::fill(bsm::Electron *pb_electron, const pat::Electron *electron)
@@ -675,6 +675,12 @@ void InputMaker::fill(bsm::Electron *pb_electron, const pat::Electron *electron)
     pb_isolation->set_track(electron->dr03TkSumPt());
     pb_isolation->set_ecal(electron->dr03EcalRecHitSumEt());
     pb_isolation->set_hcal(electron->dr03HcalTowerSumEt());
+
+    bsm::PFIsolation *pb_pf_isolation = pb_electron->mutable_pf_isolation();
+    pb_pf_isolation->set_particle(electron->particleIso());
+    pb_pf_isolation->set_charged_hadron(electron->chargedHadronIso());
+    pb_pf_isolation->set_neutral_hadron(electron->neutralHadronIso());
+    pb_pf_isolation->set_photon(electron->photonIso());
 
     bsm::Electron::Extra *extra = pb_electron->mutable_extra();
     extra->set_d0_bsp(electron->dB());
@@ -693,6 +699,12 @@ void InputMaker::fill(bsm::Muon *pb_muon, const pat::Muon *muon)
     pb_isolation->set_track(muon->trackIso());
     pb_isolation->set_ecal(muon->ecalIso());
     pb_isolation->set_hcal(muon->hcalIso());
+
+    bsm::PFIsolation *pb_pf_isolation = pb_muon->mutable_pf_isolation();
+    pb_pf_isolation->set_particle(muon->particleIso());
+    pb_pf_isolation->set_charged_hadron(muon->chargedHadronIso());
+    pb_pf_isolation->set_neutral_hadron(muon->neutralHadronIso());
+    pb_pf_isolation->set_photon(muon->photonIso());
 
     bsm::Muon::Extra *extra = pb_muon->mutable_extra();
     extra->set_is_global(muon->isGlobalMuon());
