@@ -36,12 +36,15 @@ namespace bsm
     float phi(const LorentzVector &);
     float pt(const LorentzVector &);
     float ptrel(const LorentzVector &v1, const LorentzVector &v2);
+    float ptrel2(const LorentzVector &v1, const LorentzVector &v2);
 
 
 
     // Vector algebra
     //
     Vector toVector(const LorentzVector &);
+
+    float magnitude(const Vector &);
 
     Vector &operator +=(Vector &, const Vector &);
     Vector &operator -=(Vector &, const Vector &);
@@ -52,9 +55,13 @@ namespace bsm
     bool operator ==(const Vector &, const Vector &);
     bool operator !=(const Vector &, const Vector &);
 
-        // Scalar multiplication
+        // Dot multiplication
         //
     float operator *(const Vector &, const Vector &);
+
+        // Cross product
+        //
+    Vector cross(const Vector &, const Vector &);
 
 
 

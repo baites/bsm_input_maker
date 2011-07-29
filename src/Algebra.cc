@@ -98,10 +98,10 @@ float bsm::dphi(const LorentzVector &v1, const LorentzVector &v2)
     float result = phi(v1) - phi(v2);
 
     while(result >= pi)
-        result -= pi;
+        result -= 2 * pi;
 
     while(result < -pi)
-        result += pi;
+        result += 2 * pi;
 
     return result;
 }
@@ -204,6 +204,14 @@ float bsm::ptrel(const LorentzVector &v1, const LorentzVector &v2)
         : 0;
 }
 
+float bsm::ptrel2(const LorentzVector &v1, const LorentzVector &v2)
+{
+    Vector pt1 = toVector(v1);
+    Vector pt2 = toVector(v2);
+
+    return magnitude(cross(pt1, pt2)) / magnitude(pt2);
+}
+
 
 
 // Vector algebra
@@ -217,6 +225,11 @@ Vector bsm::toVector(const LorentzVector &v)
     result.set_z(v.pz());
 
     return result;
+}
+
+float bsm::magnitude(const Vector &v)
+{
+    return sqrt(v.x() * v.x() + v.y() * v.y() + v.z() * v.z());
 }
 
 Vector &bsm::operator +=(Vector &v1, const Vector &v2)
@@ -274,6 +287,17 @@ float bsm::operator *(const Vector &v1, const Vector &v2)
     return v1.x() * v2.x()
         + v1.y() * v2.y()
         + v1.z() * v2.z();
+}
+
+Vector bsm::cross(const Vector &v1, const Vector &v2)
+{
+    Vector result;
+
+    result.set_x(v1.y() * v2.z() - v1.z() * v2.y());
+    result.set_y(-v1.x() * v2.z() + v1.z() * v2.x());
+    result.set_z(v1.x() * v2.y() - v1.y() * v2.x());
+
+    return result;
 }
 
 
