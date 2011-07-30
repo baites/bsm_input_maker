@@ -14,5 +14,5 @@
 <use name=bsm_input_maker/bsm_input>
 
 <flags CXXFLAGS="-I${CMSSW_BASE}/src/bsm_input_maker/bsm_input/interface">
-<flags LDFLAGS='-lbsm_input_makerbsm_input -L/usr/lib -lprotobuf'>
+<flags LDFLAGS='-lbsm_input_makerbsm_input -L/uscms_data/d2/baites/Utils/protobuf/2.3.0/lib -lprotobuf'>
 <flags EDM_PLUGIN="1">
