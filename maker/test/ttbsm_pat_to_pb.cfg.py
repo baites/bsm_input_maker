@@ -38,7 +38,7 @@ process.InputMaker.input_type = cms.string("zprime")
 process.InputMaker.hlts = cms.string("TriggerResults::HLT")
 process.InputMaker.hlt_pattern = cms.string("hlt_ele*calo*")
 
-process.e0 = cms.EndPath(
+process.pb_path = cms.Path(
     process.InputMaker
 )
 
