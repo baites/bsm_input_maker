@@ -1,0 +1,23 @@
+CMSSW INSTRUCTIONS
+==================
+
+    The code expects Google ProtoBuf to be installed on the computer. Change
+    path to ProtoBuf library in the BuildFile if the installation is made into
+    non-standard folder, other than /usr/lib
+
+    1. make
+        
+        Google ProtoBuf protoc executale will be invoked to generate C++
+        header and source files. Generated code will be put into message
+        folder. Symbolic links are created from interface and src folders
+        to .pb.h and .pb.cc files correspondingly. The code is ready for
+        the CMSSW compilation
+
+    2. scram b -r
+
+
+
+STAND-ALONE INSTRUCTIONS
+========================
+
+    1. make

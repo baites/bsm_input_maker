@@ -1,0 +1,8 @@
+<use name=root>
+<use name=boost>
+<use name=boost_system>
+<use name=boost_filesystem>
+
+<flags cxxflags="-I${CMSSW_BASE}/src/bsm_input_maker/bsm_input/message -I${CMSSW_BASE}/src/bsm_input_maker/">
+<flags ldflags="-L/usr/lib -lprotobuf">
+<flags skip_files="read.cpp reader.cpp write.cpp writer.cpp p4_algebra.cpp">

@@ -1,0 +1,27 @@
+// Basic messages that are used by physics objects
+//
+// Created by Samvel Khalatyan, Apr 19, 2011
+// Copyright 2011, All rights reserved
+
+package bsm;
+
+message LorentzVector
+{
+    required float e = 1;
+    required float px = 2;
+    required float py = 3;
+    required float pz = 4;
+}
+
+message Vector
+{
+    required float x = 1;
+    required float y = 2;
+    required float z = 3;
+}
+
+message PhysicsObject
+{
+    required LorentzVector p4 = 1;
+    required Vector vertex = 2;
+}

@@ -1,0 +1,57 @@
+// Physics Jet
+//
+// Created by Samvel Khalatyan, Apr 19, 2011
+// Copyright 2011, All rights reserved
+
+import "Physics.proto";
+import "GenParticle.proto";
+
+package bsm;
+
+message Jet
+{
+    message BTag
+    {
+        enum Type
+        {
+            TCHE = 0;
+            TCHP = 1;
+            SSVHE = 2;
+            SSVHP = 3;
+        }
+
+        required Type type = 1;
+        required float discriminator = 2;
+    }
+
+    message Energy
+    {
+        optional float electron = 1;
+        optional float muon = 2;
+        optional float photon = 3;
+    }
+
+    message Extra
+    {
+        optional uint32 constituents = 1;
+        optional uint32 n90hits = 2;
+        optional float hpd = 3;
+        optional float area = 4;
+    }
+
+    message Child
+    {
+        required PhysicsObject physics_object = 1;
+
+        optional Child children = 2;
+    }
+
+    required PhysicsObject physics_object = 1;
+    optional GenParticle gen_parton = 2;
+    optional Energy energy = 3;
+    optional Extra extra = 4;
+    repeated Child children = 5;
+
+    repeated BTag btags = 6;
+    optional LorentzVector uncorrected_p4 = 7;
+}
