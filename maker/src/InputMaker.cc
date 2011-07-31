@@ -686,6 +686,47 @@ void InputMaker::fill(bsm::Electron *pb_electron, const pat::Electron *electron)
     extra->set_d0_bsp(electron->dB());
     extra->set_super_cluster_eta(electron->superCluster()->eta());
     extra->set_inner_track_expected_hits(electron->gsfTrack()->trackerExpectedHitsInner().numberOfHits());
+
+    // Adding all the electron id flags
+
+    std::string postfix;
+    if (_input_type != Input::DATA) postfix = "MC";
+    // VeryLoose
+    bsm::Electron::Flag * flag = pb_electron->add_flag();
+    flag->set_name(bsm::Electron::EIDVeryLoose);
+    flag->set_value(electron->electronID(std::string("eidVeryLoose")+postfix)); 
+    // Loose 
+    flag = pb_electron->add_flag();
+    flag->set_name(bsm::Electron::EIDLoose);
+    flag->set_value(electron->electronID(std::string("eidLoose")+postfix));
+    // Medium 
+    flag = pb_electron->add_flag();
+    flag->set_name(bsm::Electron::EIDMedium);
+    flag->set_value(electron->electronID(std::string("eidMedium")+postfix));
+    // Tight
+    flag = pb_electron->add_flag();
+    flag->set_name(bsm::Electron::EIDTight);
+    flag->set_value(electron->electronID(std::string("eidTight")+postfix));
+    // SuperTight 
+    flag = pb_electron->add_flag();
+    flag->set_name(bsm::Electron::EIDSuperTight);
+    flag->set_value(electron->electronID(std::string("eidSuperTight")+postfix));
+    // HyperTight1
+    flag = pb_electron->add_flag();
+    flag->set_name(bsm::Electron::EIDHyperTight1);
+    flag->set_value(electron->electronID(std::string("eidHyperTight1")+postfix));
+    // HyperTight2
+    flag = pb_electron->add_flag();
+    flag->set_name(bsm::Electron::EIDHyperTight2);
+    flag->set_value(electron->electronID(std::string("eidHyperTight2")+postfix));
+    // HyperTight3
+    flag = pb_electron->add_flag();
+    flag->set_name(bsm::Electron::EIDHyperTight3);
+    flag->set_value(electron->electronID(std::string("eidHyperTight3")+postfix));
+    // HyperTight4 
+    flag = pb_electron->add_flag();
+    flag->set_name(bsm::Electron::EIDHyperTight4);
+    flag->set_value(electron->electronID(std::string("eidHyperTight4")+postfix));
 }
 
 void InputMaker::fill(bsm::Muon *pb_muon, const pat::Muon *muon)
