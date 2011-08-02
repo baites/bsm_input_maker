@@ -62,6 +62,8 @@ using reco::GenParticleCollection;
 
 using bsm::InputMaker;
 
+static void set_electronid(bsm::Electron *, bsm::Electron::ElectronIDName const, int const);
+
 InputMaker::InputMaker(const ParameterSet &config):
     _input_type(Input::UNKNOWN)
 {
@@ -687,46 +689,65 @@ void InputMaker::fill(bsm::Electron *pb_electron, const pat::Electron *electron)
     extra->set_super_cluster_eta(electron->superCluster()->eta());
     extra->set_inner_track_expected_hits(electron->gsfTrack()->trackerExpectedHitsInner().numberOfHits());
 
-    // Adding all the electron id flags
-
+    // Adding all the electron id info
+    
     std::string postfix;
     if (_input_type != Input::DATA) postfix = "MC";
+    
     // VeryLoose
-    bsm::Electron::Flag * flag = pb_electron->add_flag();
-    flag->set_name(bsm::Electron::EIDVeryLoose);
-    flag->set_value(electron->electronID(std::string("eidVeryLoose")+postfix)); 
+    set_electronid(
+       pb_electron,
+       bsm::Electron::VeryLoose,
+       electron->electronID(std::string("eidVeryLoose")+postfix)
+    );
     // Loose 
-    flag = pb_electron->add_flag();
-    flag->set_name(bsm::Electron::EIDLoose);
-    flag->set_value(electron->electronID(std::string("eidLoose")+postfix));
-    // Medium 
-    flag = pb_electron->add_flag();
-    flag->set_name(bsm::Electron::EIDMedium);
-    flag->set_value(electron->electronID(std::string("eidMedium")+postfix));
-    // Tight
-    flag = pb_electron->add_flag();
-    flag->set_name(bsm::Electron::EIDTight);
-    flag->set_value(electron->electronID(std::string("eidTight")+postfix));
+    set_electronid(
+       pb_electron,
+       bsm::Electron::Loose,
+       electron->electronID(std::string("eidLoose")+postfix)
+    );
+    // Loose 
+    set_electronid(
+       pb_electron,
+       bsm::Electron::Medium,
+       electron->electronID(std::string("eidMedium")+postfix)
+    );
+    // Tight 
+    set_electronid(
+       pb_electron,
+       bsm::Electron::Tight,
+       electron->electronID(std::string("eidTight")+postfix)
+    );
     // SuperTight 
-    flag = pb_electron->add_flag();
-    flag->set_name(bsm::Electron::EIDSuperTight);
-    flag->set_value(electron->electronID(std::string("eidSuperTight")+postfix));
-    // HyperTight1
-    flag = pb_electron->add_flag();
-    flag->set_name(bsm::Electron::EIDHyperTight1);
-    flag->set_value(electron->electronID(std::string("eidHyperTight1")+postfix));
-    // HyperTight2
-    flag = pb_electron->add_flag();
-    flag->set_name(bsm::Electron::EIDHyperTight2);
-    flag->set_value(electron->electronID(std::string("eidHyperTight2")+postfix));
+    set_electronid(
+       pb_electron,
+       bsm::Electron::SuperTight,
+       electron->electronID(std::string("eidSuperTight")+postfix)
+    );
+    // HyperTight1 
+    set_electronid(
+       pb_electron,
+       bsm::Electron::HyperTight1,
+       electron->electronID(std::string("eidHyperTight1")+postfix)
+    );
+    // HyperTight2 
+    set_electronid(
+       pb_electron,
+       bsm::Electron::HyperTight2,
+       electron->electronID(std::string("eidHyperTight2")+postfix)
+    );
     // HyperTight3
-    flag = pb_electron->add_flag();
-    flag->set_name(bsm::Electron::EIDHyperTight3);
-    flag->set_value(electron->electronID(std::string("eidHyperTight3")+postfix));
-    // HyperTight4 
-    flag = pb_electron->add_flag();
-    flag->set_name(bsm::Electron::EIDHyperTight4);
-    flag->set_value(electron->electronID(std::string("eidHyperTight4")+postfix));
+    set_electronid(
+       pb_electron,
+       bsm::Electron::HyperTight3,
+       electron->electronID(std::string("eidHyperTight3")+postfix)
+    );
+    // HyperTight4
+    set_electronid(
+       pb_electron,
+       bsm::Electron::HyperTight1,
+       electron->electronID(std::string("eidHyperTight4")+postfix)
+    );
 }
 
 void InputMaker::fill(bsm::Muon *pb_muon, const pat::Muon *muon)
@@ -814,6 +835,17 @@ void InputMaker::addBTags(Jet *pb, const pat::Jet *pat)
     btag->set_type(Jet::BTag::SSVHP);
     btag->set_discriminator(
             pat->bDiscriminator("simpleSecondaryVertexHighPurBJetTags"));
+}
+
+// Auxiliary function to set the electron id
+void set_electronid(bsm::Electron * electron, bsm::Electron::ElectronIDName const name, int const value)
+{
+	bsm::Electron::ElectronID * electronid = electron->add_electronid();
+    electronid->set_name(name);
+    electronid->set_identification((value & 1) == 1); 
+    electronid->set_isolation((value & 2) == 2);
+    electronid->set_conversion_rejection((value & 4) == 4);
+    electronid->set_impact_parameter((value & 8) == 8);    
 }
 
 DEFINE_FWK_MODULE(InputMaker);
