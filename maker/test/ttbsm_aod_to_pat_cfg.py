@@ -231,8 +231,8 @@ from PhysicsTools.PatAlgos.tools.pfTools import *
 
 # usePV should be set before usePF2PAT function is called since all other
 # collections of leptons are cloned from patMuons, patElectrons
-process.patMuons.usePV = cms.bool(False)
-process.patElectrons.usePV = cms.bool(False)
+process.patMuons.usePV = cms.bool(True)
+process.patElectrons.usePV = cms.bool(True)
 process.patJets.addTagInfos = cms.bool(True)
 
 postfix = "PFlow"
