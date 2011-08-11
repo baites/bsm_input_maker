@@ -745,7 +745,7 @@ void InputMaker::fill(bsm::Electron *pb_electron, const pat::Electron *electron)
     // HyperTight4
     set_electronid(
        pb_electron,
-       bsm::Electron::HyperTight1,
+       bsm::Electron::HyperTight4,
        electron->electronID(std::string("eidHyperTight4")+postfix)
     );
 }
