@@ -676,8 +676,8 @@ process.goodPatJetsCATopTagPF = cms.EDFilter("PFJetIDSelectionFunctorFilter",
 # let it run
 
 process.patseq = cms.Sequence(
-#    process.scrapingVeto *
-#    process.HBHENoiseFilter *
+    process.scrapingVeto *
+    process.HBHENoiseFilter *
 #    process.offlinePrimaryVerticesDAF*    
     process.goodOfflinePrimaryVertices*
     process.primaryVertexFilter*
