@@ -62,10 +62,11 @@ class Files:
     Only files with latest modification time will be selected. Sometimes
     CRAB resubmits jobs automatically. This will result in several output files
     with the same job ID'''
-    def __init__(self, find_obsolete_files = False):
+    def __init__(self):
         self._files = list()
         self._jobs = None
-        self._find_obsolete_files = find_obsolete_files
+        self._find_obsolete_files = False
+        self._find_all_files = False
 
     def setJobs(self, jobs):
         '''Set parsed jobs object
@@ -94,31 +95,36 @@ class Files:
             newest_file = ""
             newest_mtime = 0
 
-            obsolete_files = []
+            other_files = []
             try:
                 while True:
                     file = results.next()
+
+                    if self.findAllFiles():
+                        other_files.append(file)
+                        continue
+
                     mtime = os.path.getmtime(file)
 
                     if mtime > newest_mtime:
                         if newest_file:
-                            obsolete_files.append(newest_file)
+                            other_files.append(newest_file)
 
                         newest_mtime = mtime
                         newest_file = file
                     else:
-                        obsolete_files.append(file)
+                        other_files.append(file)
             except StopIteration:
                 pass
 
-            if not newest_file:
+            if not newest_file and not other_files:
                 print "file is not found for job {0}".format(job)
 
                 continue
 
-            if self.findObsoleteFiles():
-                if obsolete_files:
-                    self._files.extend(obsolete_files)
+            if self.findObsoleteFiles() or self.findAllFiles():
+                if other_files:
+                    self._files.extend(other_files)
             else:
                 self._files.append(newest_file)
 
@@ -128,11 +134,22 @@ class Files:
     def findObsoleteFiles(self):
         return self._find_obsolete_files
 
+    def findAllFiles(self):
+        return self._find_all_files
+
+    def setFindObsoleteFiles(self, flag):
+        self._find_all_files = False
+        self._find_obsolete_files = flag
+
+    def setFindAllFiles(self, flag):
+        self._find_obsolete_files = False
+        self._find_all_files = flag
+
 
 
 if "__main__" == __name__:
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "", ["obsolete"])
+        opts, args = getopt.getopt(sys.argv[1:], "", ["obsolete", "all"])
 
         if 2 > len(args):
             print "usage: {0} PATH CRAB_JOB_IDS".format(sys.argv[0])
@@ -140,18 +157,28 @@ if "__main__" == __name__:
             sys.exit(1)
 
         find_obsolete_files = False
+        find_all_files = False
 
         for option, v in opts:
             if option in ("--obsolete", ):
                 find_obsolete_files = True
-
-                break
+            elif option in ("--all", ):
+                find_all_files = True
 
         jobs = Jobs()
         for i, v in enumerate(args[1:]):
             jobs.add(re.split(",", v))
 
-        files = Files(find_obsolete_files)
+        if find_obsolete_files and find_all_files:
+            print "warning: obsolete and all search files options are set - use all"
+
+        files = Files()
+        if find_obsolete_files:
+            files.setFindObsoleteFiles(True)
+
+        if find_all_files:
+            files.setFindAllFiles(True)
+
         files.setJobs(jobs)
         files.search(args[0])
 
