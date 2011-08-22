@@ -5,9 +5,9 @@
 # Created by Samvel Khalatyan, Aug 04, 2011
 # Copyright 2011, All rights reserved
 
-if [[ 2 -gt $# ]]
+if [[ 3 -gt $# ]]
 then
-    echo Usage: `basename $0` input.txt cmssw_cfg.py [cmssw args]
+    echo Usage: `basename $0` input.txt cmssw_cfg.py FILES_PER_JOB [cmssw args]
 
     exit 1
 fi
@@ -39,6 +39,9 @@ fi
 config_file=$1
 shift
 
+files_per_job=$1
+shift
+
 prod_folder=prod_`date +%F_%R_%S | sed -e 's/[-:]/_/g'`
 if [[ -d $prod_folder ]]
 then
@@ -48,7 +51,12 @@ then
 fi
 
 CMSRUN=`which cmsRun`
-JOBS=`wc -l $input_file | cut -f1 -d' '`
+files=`wc -l $input_file | cut -f1 -d' '`
+JOBS=$(( files / files_per_job ))
+if [[ 0 -lt $(( files - JOBS * files_per_job )) ]]
+then
+    JOBS=$(( JOBS + 1 ))
+fi
 
 mkdir $prod_folder
 
@@ -63,11 +71,11 @@ chmod u+x $prod_folder/run.sh
 
 pushd $prod_folder &> /dev/null
 
-for (( job=0; JOBS>job; job++ ))
+for (( job = 0; JOBS > job; ++job ))
 do
     work_folder=job.$job
     mkdir $work_folder
-    eval "sed -n '$(( job + 1 ))p' input.txt > $work_folder/input.txt"
+    eval "awk 'NR > $(( job * files_per_job )) && NR <= $(( (job + 1) * files_per_job ))' input.txt > $work_folder/input.txt"
     ln -s ../cmssw_cfg.py $work_folder/cmssw_cfg.py
     ln -s ../proxy $work_folder/proxy
 done
