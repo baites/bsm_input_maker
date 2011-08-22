@@ -12,6 +12,7 @@
 # Created by Samvel Khalatyan, Aug 22, 2011
 # Copyright 2011, All rights reserved
 
+import getopt
 import glob
 import os
 import re
@@ -61,9 +62,10 @@ class Files:
     Only files with latest modification time will be selected. Sometimes
     CRAB resubmits jobs automatically. This will result in several output files
     with the same job ID'''
-    def __init__(self):
+    def __init__(self, find_obsolete_files = False):
         self._files = list()
         self._jobs = None
+        self._find_obsolete_files = find_obsolete_files
 
     def setJobs(self, jobs):
         '''Set parsed jobs object
@@ -91,14 +93,21 @@ class Files:
             results = glob.iglob(pattern)
             newest_file = ""
             newest_mtime = 0
+
+            obsolete_files = []
             try:
                 while True:
                     file = results.next()
                     mtime = os.path.getmtime(file)
 
                     if mtime > newest_mtime:
+                        if newest_file:
+                            obsolete_files.append(newest_file)
+
                         newest_mtime = mtime
                         newest_file = file
+                    else:
+                        obsolete_files.append(file)
             except StopIteration:
                 pass
 
@@ -107,25 +116,47 @@ class Files:
 
                 continue
 
-            self._files.append(newest_file)
+            if self.findObsoleteFiles():
+                if obsolete_files:
+                    self._files.extend(obsolete_files)
+            else:
+                self._files.append(newest_file)
 
     def files(self):
         return self._files
 
+    def findObsoleteFiles(self):
+        return self._find_obsolete_files
+
 
 
 if "__main__" == __name__:
-    if 3 > len(sys.argv):
-        print "usage: {0} PATH CRAB_JOB_IDS".format(sys.argv[0])
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "", ["obsolete"])
 
-        sys.exit(0)
-    else:
+        if 2 > len(args):
+            print "usage: {0} PATH CRAB_JOB_IDS".format(sys.argv[0])
+
+            sys.exit(1)
+
+        find_obsolete_files = False
+
+        for option, v in opts:
+            if option in ("--obsolete", ):
+                find_obsolete_files = True
+
+                break
+
         jobs = Jobs()
-        for i, v in enumerate(sys.argv[2:]):
+        for i, v in enumerate(args[1:]):
             jobs.add(re.split(",", v))
 
-        files = Files()
+        files = Files(find_obsolete_files)
         files.setJobs(jobs)
-        files.search(sys.argv[1])
+        files.search(args[0])
 
         print "\n".join(files.files())
+    except getopt.GetoptError, err:
+        print str(err)
+
+        sys.exit(0)
