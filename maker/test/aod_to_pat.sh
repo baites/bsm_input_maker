@@ -1,9 +1,20 @@
 #!/usr/bin/env bash
+#
 # Submit 1 condor job per file found in the input.txtf with given CMSSW config
+#
+# Created by Samvel Khalatyan, Aug 04, 2011
+# Copyright 2011, All rights reserved
 
 if [[ 3 -gt $# ]]
 then
     echo Usage: `basename $0` input.txt cmssw_cfg.py PNFS/Folder [cmssw args]
+
+    exit 1
+fi
+
+if [[ !(-r condor.cfg) ]]
+then
+    echo condor.cfg file does not exist
 
     exit 1
 fi
@@ -34,6 +45,25 @@ then
     echo VOMS proxy is not setup
 
     exit 1
+fi
+
+proxy_hours_left=`voms-proxy-info | awk '/timeleft/{print $3}' | awk '{split($0, a, ":"); print a[1]}'`
+if [[ 24 -gt $proxy_hours_left ]]
+then
+    while [[ 1 ]]
+    do
+        read -p "VOMS proxy is only valid in next ${proxy_hours_left} hours that is below 24h. Are you sure you want to continue (y/n)? " -n 1
+
+        if [[ $REPLY =~ ^[Nn]$ ]]
+        then
+            echo stop submission: please re-initialize proxy
+
+            exit 1
+        elif [[ $REPLY =~ [Yy]$ ]]
+        then
+            break
+        fi
+    done
 fi
 
 prod_folder=prod_`date +%F_%R_%S | sed -e 's/[-:]/_/g'`

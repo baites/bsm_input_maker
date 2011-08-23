@@ -1,9 +1,20 @@
 #!/usr/bin/env bash
+#
 # Submit 1 condor job per file found in the input.txtf with given CMSSW config
+#
+# Created by Samvel Khalatyan, Aug 04, 2011
+# Copyright 2011, All rights reserved
 
 if [[ 2 -gt $# ]]
 then
     echo Usage: `basename $0` input.txt cmssw_cfg.py [cmssw args]
+
+    exit 1
+fi
+
+if [[ !(-r condor.cfg) ]]
+then
+    echo condor.cfg file does not exist
 
     exit 1
 fi
