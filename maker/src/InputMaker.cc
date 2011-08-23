@@ -70,10 +70,6 @@ InputMaker::InputMaker(const ParameterSet &config):
 {
     GOOGLE_PROTOBUF_VERIFY_VERSION;
 
-    _writer.reset(new Writer(config.getParameter<string>("fileName")));
-    _writer->setDelegate(this);
-    _writer->open();
-
     _event.reset(new Event());
 
     _gen_particles_tag = config.getParameter<string>("gen_particles");
@@ -111,6 +107,10 @@ InputMaker::InputMaker(const ParameterSet &config):
     }
 
     setInputType(config.getParameter<string>("input_type"));
+
+    _writer.reset(new Writer(config.getParameter<string>("fileName")));
+    _writer->setDelegate(this);
+    _writer->open();
 }
 
 InputMaker::~InputMaker()
