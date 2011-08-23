@@ -99,7 +99,9 @@ namespace bsm
             std::string _missing_energies_tag;
 
             std::string _hlts_tag;
-            std::string _hlt_pattern;
+
+            typedef std::vector<std::string> Patterns;
+            Patterns _hlt_patterns;
 
             Input::Type _input_type;
 

@@ -4,6 +4,7 @@
 // Copyright 2011, All rights reserved
 
 #include <algorithm>
+#include <iostream>
 #include <string>
 #include <vector>
 
@@ -39,8 +40,7 @@
 
 #include "bsm_input_maker/maker/interface/InputMaker.h"
 
-using std::string;
-using std::vector;
+using namespace std;
 
 using boost::lexical_cast;
 using boost::regex;
@@ -90,20 +90,22 @@ InputMaker::InputMaker(const ParameterSet &config):
     _missing_energies_tag = config.getParameter<string>("missing_energies");
 
     _hlts_tag = config.getParameter<string>("hlts");
-    _hlt_pattern = config.getParameter<string>("hlt_pattern");
-    to_lower(_hlt_pattern);
+    string patterns = config.getParameter<string>("hlt_pattern");
+    to_lower(patterns);
 
-    if (!regex_search(_hlt_pattern, regex("^(?:\\w*\\*?)+$")))
+    Patterns matches;
+    boost::split(matches, patterns, boost::is_any_of(","));
+
+    for(Patterns::const_iterator match = matches.begin();
+            matches.end() != match;
+            ++match)
     {
-        // Didn't understand the trigger pattern
-        //
-        _hlt_pattern = "";
-    }
-    else
-    {
-        _hlt_pattern = regex_replace(_hlt_pattern, regex("\\*+"), "\\.\\*");
-        if (".*" == _hlt_pattern)
-            _hlt_pattern = "";
+        string pattern = *match;
+        pattern = regex_replace(pattern, regex("\\*+"), "\\.\\*");
+        if (".*" == pattern)
+            pattern = "";
+
+        _hlt_patterns.push_back(pattern);
     }
 
     setInputType(config.getParameter<string>("input_type"));
@@ -226,40 +228,49 @@ void InputMaker::beginRun(const edm::Run &run,
     // Get list of trigger names
     //
     const CMSSW_Triggers &triggers = _hlt_config->triggerNames();
-    uint32_t cmssw_id = 0;
     boost::hash<std::string> make_hash;
 
-    regex user_pattern(_hlt_pattern, boost::regex_constants::icase | boost::regex_constants::perl);
-    for(CMSSW_Triggers::const_iterator trigger = triggers.begin();
-            triggers.end() != trigger;
-            ++trigger, ++cmssw_id)
+    for(Patterns::const_iterator pattern = _hlt_patterns.begin();
+            _hlt_patterns.end() != pattern;
+            ++pattern)
     {
-        smatch matches;
-        if (!regex_match(*trigger, matches, regex("^(HLT_\\w+?)(?:_[vV](\\d+))?$")))
+        uint32_t cmssw_id = 0;
+
+        string hlt_pattern = *pattern;
+        regex user_pattern(hlt_pattern,
+                boost::regex_constants::icase | boost::regex_constants::perl);
+
+        for(CMSSW_Triggers::const_iterator trigger = triggers.begin();
+                triggers.end() != trigger;
+                ++trigger, ++cmssw_id)
         {
-            // Didn't understand the trigger name
-            //
+            smatch matches;
+            if (!regex_match(*trigger, matches, regex("^(HLT_\\w+?)(?:_[vV](\\d+))?$")))
+            {
+                // Didn't understand the trigger name
+                //
 
-            continue;
+                continue;
+            }
+
+            if (!hlt_pattern.empty()
+                    && !regex_search(*trigger, user_pattern))
+                continue;
+
+            Trigger obj;
+
+            obj.full_name = *trigger;
+            obj.name = matches[1];
+            to_lower(obj.name);
+            obj.hash = make_hash(obj.name);
+            obj.version = matches[2].matched
+                ? lexical_cast<uint32_t>(matches[2])
+                : 1;
+
+            _hlts[cmssw_id] = obj;
+
+            addHLTtoMap(obj.hash, obj.name);
         }
-
-        if (!_hlt_pattern.empty()
-                && !regex_search(*trigger, user_pattern))
-            continue;
-
-        Trigger obj;
-
-        obj.full_name = *trigger;
-        obj.name = matches[1];
-        to_lower(obj.name);
-        obj.hash = make_hash(obj.name);
-        obj.version = matches[2].matched
-            ? lexical_cast<uint32_t>(matches[2])
-            : 1;
-
-        _hlts[cmssw_id] = obj;
-
-        addHLTtoMap(obj.hash, obj.name);
     }
 }
 
