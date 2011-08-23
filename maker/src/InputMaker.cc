@@ -3,6 +3,7 @@
 // Created by Samvel Khalatyan, Apr 19, 2011
 // Copyright 2011, All rights reserved
 
+#include <algorithm>
 #include <string>
 #include <vector>
 
@@ -74,6 +75,9 @@ InputMaker::InputMaker(const ParameterSet &config):
     _event.reset(new Event());
 
     _gen_particles_tag = config.getParameter<string>("gen_particles");
+    _gen_particle_levels =
+        std::min(config.getParameter<uint32_t>("gen_particle_levels"),
+            static_cast<uint32_t>(10));
 
     _jets_tag = config.getParameter<string>("jets");
     _rho_tag = config.getParameter<string>("rho");
@@ -318,7 +322,7 @@ void InputMaker::genParticles(const edm::Event &event)
                 || TOP != abs(particle->pdgId()))
             continue;
 
-        products(_event->add_gen_particles(), *particle, 2);
+        products(_event->add_gen_particles(), *particle, _gen_particle_levels);
     }
 }
 
@@ -326,6 +330,8 @@ void InputMaker::products(bsm::GenParticle *pb_particle,
         const reco::Candidate &particle,
         const uint32_t &level)
 {
+    // Save current particle in ProtoBuf
+    //
     pb_particle->set_id(particle.pdgId());
     pb_particle->set_status(particle.status());
 
@@ -338,6 +344,8 @@ void InputMaker::products(bsm::GenParticle *pb_particle,
     if (!level)
         return;
 
+    // Save its stable children
+    //
     for(reco::Candidate::const_iterator product = particle.begin();
             particle.end() != product;
             ++product)

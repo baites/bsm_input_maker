@@ -84,6 +84,7 @@ namespace bsm
             void addBTags(Jet *, const pat::Jet *);
 
             std::string _gen_particles_tag;
+            uint32_t _gen_particle_levels;
 
             std::string _jets_tag;
             std::string _rho_tag;

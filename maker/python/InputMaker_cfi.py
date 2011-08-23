@@ -5,6 +5,8 @@ InputMaker = cms.EDAnalyzer(
     fileName = cms.string("input.pb"),
 
     gen_particles = cms.string("prunedGenParticles"),
+    gen_particle_levels = cms.uint32(2),
+
     jets = cms.string("goodPatJetsPFlow"),
     rho = cms.string("kt6PFJetsPFlow"),
 
