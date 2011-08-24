@@ -691,8 +691,7 @@ void InputMaker::fill(bsm::Electron *pb_electron, const pat::Electron *electron)
 
     // Adding all the electron id info
     
-    std::string postfix;
-    if (_input_type != Input::DATA) postfix = "MC";
+    std::string postfix = "MC";
     
     // VeryLoose
     set_electronid(
