@@ -36,13 +36,13 @@ namespace reco
 namespace bsm
 {
     class InputMaker: public edm:: EDAnalyzer,
-        public bsm::Writer::Delegate
+        public bsm::WriterDelegate
     {
         public:
             InputMaker(const edm::ParameterSet &);
             virtual ~InputMaker();
 
-            // Writer::Delegate interface
+            // WriterDelegate interface
             //
             virtual void fileDidOpen(const bsm::Writer *);
 

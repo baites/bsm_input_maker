@@ -72,8 +72,8 @@ void JetEnergyCorrection::analyze(const edm::Event &event,
             jets->end() != jet;
             ++jet)
     {
-        int index = jet - jets->begin();
         /*
+        int index = jet - jets->begin();
         edm::RefToBase<reco::Jet> jetRef(edm::Ref<JetCollection>(jets, index));
         double jec = corrector->correction(*jet, jetRef, event, setup);
         */
