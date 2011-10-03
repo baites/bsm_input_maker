@@ -423,6 +423,7 @@ void InputMaker::jets(const edm::Event &event)
         }
         */
 
+        /*
         typedef std::vector<reco::PFCandidatePtr> Constituents;
         
         const Constituents &constituents = jet->getPFConstituents();
@@ -437,6 +438,7 @@ void InputMaker::jets(const edm::Event &event)
             utility::set(pb_child->mutable_physics_object()->mutable_vertex(),
                     &(*child)->vertex());
         }
+        */
 
         // Skip the rest if Generator Parton is not found for the jet
         //
@@ -676,11 +678,14 @@ bool InputMaker::triggers(const edm::Event &event,
     }
 
     edm::TriggerResultsByName resultsByNameHLT = event.triggerResultsByName("PAT");
+
+    /*
     const bool scraping_veto = resultsByNameHLT.accept("filter_scraping");
     const bool hbhe_noise = resultsByNameHLT.accept("filter_hbhenoise");
-    const bool pat_sequence = resultsByNameHLT.accept("p0");
     _event->mutable_filters()->set_scraping_veto(scraping_veto);
     _event->mutable_filters()->set_hbhe_noise(hbhe_noise);
+    */
+    const bool pat_sequence = resultsByNameHLT.accept("p0");
 
     return pat_sequence;
 }
