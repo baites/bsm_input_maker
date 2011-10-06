@@ -16,6 +16,8 @@
 
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 #include "DataFormats/Common/interface/TriggerResults.h"
+#include "DataFormats/HLTReco/interface/TriggerEvent.h"
+#include "DataFormats/HLTReco/interface/TriggerObject.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include "DataFormats/PatCandidates/interface/Jet.h"
 #include "DataFormats/PatCandidates/interface/Electron.h"
@@ -41,29 +43,14 @@
 #include "bsm_input_maker/maker/interface/InputMaker.h"
 
 using namespace std;
-
-using boost::lexical_cast;
-using boost::regex;
-using boost::regex_match;
-using boost::regex_replace;
-using boost::regex_search;
-using boost::smatch;
-using boost::to_lower;
-
-using edm::Handle;
-using edm::InputTag;
-using edm::LogInfo;
-using edm::LogWarning;
-using edm::ParameterSet;
-using edm::TriggerResults;
-
-using reco::Vertex;
-using reco::GenParticle;
-using reco::GenParticleCollection;
+using namespace boost;
+using namespace edm;
+using namespace reco;
 
 using bsm::InputMaker;
 
-static void set_electronid(bsm::Electron *, bsm::Electron::ElectronIDName const, int const);
+static void set_electronid(bsm::Electron *, bsm::Electron::ElectronIDName const,
+        int const);
 
 InputMaker::InputMaker(const ParameterSet &config):
     _input_type(Input::UNKNOWN)
@@ -71,46 +58,37 @@ InputMaker::InputMaker(const ParameterSet &config):
     GOOGLE_PROTOBUF_VERIFY_VERSION;
 
     _event.reset(new Event());
+    _hlt_config.reset(new HLTConfigProvider());
 
-    _gen_particles_tag = config.getParameter<string>("gen_particles");
-    _gen_particle_levels =
-        std::min(config.getParameter<uint32_t>("gen_particle_levels"),
+    _gen_particle_tag = config.getParameter<InputTag>("gen_particle");
+    _gen_particle_depth_level =
+        std::min(config.getParameter<uint32_t>("gen_particle_depth_level"),
             static_cast<uint32_t>(10));
 
-    _jets_tag = config.getParameter<string>("jets");
-    _rho_tag = config.getParameter<string>("rho");
+    _jet_tag = config.getParameter<InputTag>("jet");
+    _rho_tag = config.getParameter<InputTag>("rho");
 
-    _pf_electrons_tag = config.getParameter<string>("pf_electrons");
-    _gsf_electrons_tag = config.getParameter<string>("gsf_electrons");
+    _electron_tag = config.getParameter<InputTag>("electron");
+    _muon_tag = config.getParameter<InputTag>("muon");
 
-    _pf_muons_tag = config.getParameter<string>("pf_muons");
-    _reco_muons_tag = config.getParameter<string>("reco_muons");
+    _primary_vertex_tag = config.getParameter<InputTag>("primary_vertex");
+    _missing_energy_tag = config.getParameter<InputTag>("missing_energy");
 
-    _primary_vertices_tag = config.getParameter<string>("primary_vertices");
-    _missing_energies_tag = config.getParameter<string>("missing_energies");
+    _trigger_results_tag = config.getParameter<InputTag>("hlt");
+    _trigger_event_tag = config.getParameter<InputTag>("trigger_event");
+    _hlt_path_pattern = regex(config.getParameter<string>("hlt_path_pattern"),
+            regex_constants::icase | regex_constants::perl);
 
-    _hlts_tag = config.getParameter<string>("hlts");
-    string patterns = config.getParameter<string>("hlt_pattern");
-    to_lower(patterns);
+    _hlt_producer_pattern =
+        regex(config.getParameter<string>("hlt_producer_pattern"),
+            regex_constants::icase | regex_constants::perl);
 
-    Patterns matches;
-    boost::split(matches, patterns, boost::is_any_of(","));
-
-    for(Patterns::const_iterator match = matches.begin();
-            matches.end() != match;
-            ++match)
-    {
-        string pattern = *match;
-        pattern = regex_replace(pattern, regex("\\*+"), "\\.\\*");
-        if (".*" == pattern)
-            pattern = "";
-
-        _hlt_patterns.push_back(pattern);
-    }
+    _hlt_filter_pattern = regex(config.getParameter<string>("hlt_filter_pattern"),
+            regex_constants::icase | regex_constants::perl);
 
     setInputType(config.getParameter<string>("input_type"));
 
-    _writer.reset(new Writer(config.getParameter<string>("fileName")));
+    _writer.reset(new Writer(config.getParameter<string>("output_filename")));
     _writer->setDelegate(this);
     _writer->open();
 }
@@ -125,8 +103,8 @@ InputMaker::~InputMaker()
 
 void InputMaker::fileDidOpen(const bsm::Writer *writer)
 {
-    using namespace boost::posix_time;
-    using namespace boost::gregorian;
+    using namespace posix_time;
+    using namespace gregorian;
 
     if (writer != _writer.get())
         return;
@@ -137,13 +115,6 @@ void InputMaker::fileDidOpen(const bsm::Writer *writer)
     ptime epoch(date(1970, 1, 1));
 
     _writer->input()->set_create_date((now_utc - epoch).total_seconds());
-
-    for(Triggers::const_iterator hlt = _hlts.begin();
-            _hlts.end() != hlt;
-            ++hlt)
-    {
-        addHLTtoMap(hlt->second.hash, hlt->second.name);
-    }
 }
 
 
@@ -169,109 +140,22 @@ void InputMaker::setInputType(string type)
     else if ("zjets" == type)
         _input_type = Input::ZJETS;
 
-    else if ("vqq" == type)
-        _input_type = Input::VQQ;
+    else if ("stop" == type)
+        _input_type = Input::STOP;
 
-    else if ("single_top_t_channel" == type)
-        _input_type = Input::SINGLE_TOP_T_CHANNEL;
-
-    else if ("single_top_s_channel" == type)
-        _input_type = Input::SINGLE_TOP_S_CHANNEL;
-
-    else if ("single_top_tw_channel" == type)
-        _input_type = Input::SINGLE_TOP_TW_CHANNEL;
-
-    else if ("wc" == type)
-        _input_type = Input::WC;
+    else if ("satop" == type)
+        _input_type = Input::SATOP;
 
     else if ("zprime" == type)
         _input_type = Input::ZPRIME;
+
+    else
+        _input_type = Input::UNKNOWN;
 }
 
-void InputMaker::beginJob()
+void InputMaker::beginRun(const Run &run, const EventSetup &setup)
 {
-}
-
-void InputMaker::beginRun(const edm::Run &run,
-        const edm::EventSetup &setup)
-{
-    // Skip triggers is _hlts_tag is empty
-    //
-    if (_hlts_tag.empty())
-        return;
-
-    bool is_changed = true;
-
-    _hlt_config.reset(new HLTConfigProvider());
-    if (!_hlt_config->init(run, setup, InputTag(_hlts_tag).process(),
-                is_changed))
-    {
-        LogWarning("InputMaker")
-            << "failed to initialize HLT Config Provider";
-
-        _hlt_config.reset();
-        _hlts.clear();
-
-        return;
-    }
-
-    if (!is_changed
-            && !_hlts.empty())
-        return;
-
-    // HLT Config has changed
-    //
-    _hlts.clear();
-
-    typedef std::vector<std::string> CMSSW_Triggers;
-
-    // Get list of trigger names
-    //
-    const CMSSW_Triggers &triggers = _hlt_config->triggerNames();
-    boost::hash<std::string> make_hash;
-
-    for(Patterns::const_iterator pattern = _hlt_patterns.begin();
-            _hlt_patterns.end() != pattern;
-            ++pattern)
-    {
-        uint32_t cmssw_id = 0;
-
-        string hlt_pattern = *pattern;
-        regex user_pattern(hlt_pattern,
-                boost::regex_constants::icase | boost::regex_constants::perl);
-
-        for(CMSSW_Triggers::const_iterator trigger = triggers.begin();
-                triggers.end() != trigger;
-                ++trigger, ++cmssw_id)
-        {
-            smatch matches;
-            if (!regex_match(*trigger, matches, regex("^(HLT_\\w+?)(?:_[vV](\\d+))?$")))
-            {
-                // Didn't understand the trigger name
-                //
-
-                continue;
-            }
-
-            if (!hlt_pattern.empty()
-                    && !regex_search(*trigger, user_pattern))
-                continue;
-
-            Trigger obj;
-
-            obj.full_name = *trigger;
-            obj.name = matches[1];
-            to_lower(obj.name);
-            obj.hash = make_hash(obj.name);
-            obj.version = matches[2].matched
-                ? lexical_cast<uint32_t>(matches[2])
-                : 1;
-
-            _hlts[cmssw_id] = obj;
-
-            addHLTtoMap(obj.hash, obj.name);
-        }
-    }
+    initHLT(run, setup);
 }
 
 void InputMaker::analyze(const edm::Event &event,
@@ -280,62 +164,456 @@ void InputMaker::analyze(const edm::Event &event,
     if (!_writer->isOpen())
         return;
 
+    // Set event ID
+    //
     _event->mutable_extra()->set_id(event.id().event());
     _event->mutable_extra()->set_run(event.id().run());
     _event->mutable_extra()->set_lumi(event.id().luminosityBlock());
 
-    if (triggers(event, setup))
+    if (!triggers(event, setup))
+        return;
+
+    if (!_rho_tag.label().empty())
     {
-        if (!_rho_tag.empty())
-        {
-            Handle<double> rho;
-            event.getByLabel(edm::InputTag(_rho_tag, "rho"), rho);
+        Handle<double> rho;
+        event.getByLabel(_rho_tag, rho);
+
+        if (rho.isValid())
             _event->mutable_extra()->set_rho(*rho);
-        }
-
-        genParticles(event);
-
-        jets(event);
-
-        pf_electrons(event);
-        gsf_electrons(event);
-
-        pf_muons(event);
-        reco_muons(event);
-
-        primaryVertices(event);
-        met(event);
+        else
+            LogWarning("InputMaker") << "failed to extract rho";
     }
+
+    genParticle(event);
+
+    jet(event);
+
+    electron(event);
+
+    muon(event);
+
+    primaryVertex(event);
+    met(event);
 
     _writer->write(_event);
 
     _event->Clear();
 }
 
-void InputMaker::endJob()
+void InputMaker::initHLT(const edm::Run &run, const edm::EventSetup &setup)
 {
+    // Skip triggers if _trigger_results_tag is empty
+    //
+    if (_trigger_results_tag.label().empty())
+        return;
+
+    bool is_changed = true;
+    if (!_hlt_config->init(run,
+                setup,
+                _trigger_results_tag.process(),
+                is_changed))
+    {
+        LogWarning("InputMaker")
+            << "failed to initialize HLT Config Provider";
+
+        _hlts.clear();
+
+        return;
+    }
+
+    // Do nothing if menu didn't change and hlt list is already available
+    //
+    if (!is_changed
+            && !_hlts.empty())
+        return;
+
+    // HLT Config has changed prepare for reading a new Menu
+    //
+    _hlts.clear();
+
+    typedef std::vector<std::string> Names;
+
+    // Get list of trigger names
+    //
+    const Names &triggers = _hlt_config->triggerNames();
+    hash<string> make_hash;
+
+    // The pattern is used to extract the trigger version
+    //
+    regex trigger_name_pattern("^(HLT_\\w+?)(?:_[vV](\\d+))?$",
+            regex_constants::icase | regex_constants::perl);
+
+    // Process available triggers
+    //
+    uint32_t cmssw_id = 0;
+    for(Names::const_iterator trigger = triggers.begin();
+            triggers.end() != trigger;
+            ++trigger, ++cmssw_id)
+    {
+        // Keep only triggers that match the user pattern
+        //
+        if (!regex_search(*trigger, _hlt_path_pattern))
+            continue;
+
+        // Separate the trigger version and name
+        //
+        smatch matches;
+        if (!regex_match(*trigger, matches, trigger_name_pattern))
+        {
+            // Didn't understand the trigger name
+            //
+            LogWarning("InputMaker")
+                << "failed to process trigger name: " << *trigger;
+
+            continue;
+        }
+
+        // Construct the trigger object
+        //
+        Trigger obj;
+
+        obj.full_name = *trigger;
+
+        // Trigger names are saved in lower case
+        //
+        obj.name = matches[1];
+        to_lower(obj.name);
+
+        obj.hash = make_hash(obj.name);
+        obj.version = matches[2].matched
+            ? lexical_cast<uint32_t>(matches[2])
+            : 1;
+
+        _hlts[cmssw_id] = obj;
+    }
 }
 
-void InputMaker::genParticles(const edm::Event &event)
+bool InputMaker::triggers(const edm::Event &event,
+        const edm::EventSetup &setup)
 {
-    if (_gen_particles_tag.empty())
+    if (_trigger_results_tag.label().empty()
+            || _hlts.empty())
+        return true;
+
+    // Save trigger info for the events that pass BSM PAT path
+    //
+    if (!event.triggerResultsByName("PAT").accept("p0"))
+        return false;
+
+    // Extract Trigger Results and Event from the event
+    //
+    Handle<TriggerResults> trigger_results;
+    event.getByLabel(_trigger_results_tag, trigger_results);
+
+    if (!trigger_results.isValid())
+    {
+        LogWarning("InputMaker")
+            << "failed to extract HLTs";
+
+        return false;
+    }
+
+    Handle<trigger::TriggerEvent> trigger_event;
+    event.getByLabel(_trigger_event_tag, trigger_event);
+
+    if (!trigger_event.isValid())
+    {
+        LogWarning("InputMaker")
+            << "failed to extract Trigger Event";
+
+        return false;
+    }
+
+    // Map object keys: CMSSW Key <-> ProtoBuf Key
+    // Not all producers, filters and trigger objects are saved
+    //
+    typedef map<uint32_t, uint32_t> MapID;
+
+    MapID object_map;
+    MapID producer_map;
+
+    // Map String to ProtoBuf ID
+    //
+    typedef map<string, uint32_t> MapNameToId;
+
+    MapNameToId filter_map;
+
+    // String to Hash convertion function
+    //
+    hash<string> make_hash;
+
+    bsm::Event::TriggerInfo *pb_trigger_info = _event->mutable_hlt();
+
+    // Cache producers, filters, objects for fast access
+    //
+    typedef vector<string> Names;
+
+    const Names &producers = trigger_event->collectionTags();
+    const trigger::TriggerObjectCollection &objects =
+        trigger_event->getObjects();
+
+    // Trigger Object keys associated with producers
+    //
+    const trigger::Keys &keys = trigger_event->collectionKeys();
+
+    // Save producers in the ProtoBuf Event
+    //
+    size_t producer_id = 0;
+    for(Names::const_iterator producer = producers.begin();
+            producers.end() != producer;
+            ++producer, ++producer_id)
+    {
+        // Save only producers that match user regular expression
+        //
+        if (!regex_search(*producer, _hlt_producer_pattern))
+            continue;
+
+        // Extract corresponding trigger objects
+        //
+        const size_t from = producer_id
+            ? keys[producer_id - 1]
+            : producer_id;
+        const size_t to = keys[producer_id];
+
+        // Get associated pb ids
+        //
+        const uint32_t pb_from = pb_trigger_info->object().size();
+        const uint32_t pb_to = pb_from + (to - from);
+        for(size_t k = from; to > k; ++k)
+        {
+            // Store key in map
+            //
+            object_map[k] = pb_trigger_info->object().size();
+
+            addTriggerObject(pb_trigger_info->add_object(), objects[k]);
+        }
+
+        // Store producer key in map
+        //
+        producer_map[producer_id] = pb_trigger_info->producer().size();
+
+        // Add trigger object producer to the event
+        //
+        string producer_name(*producer);
+        to_lower(producer_name);
+
+        bsm::TriggerProducer *producer = pb_trigger_info->add_producer();
+        const size_t hash = make_hash(producer_name);
+        producer->set_hash(hash);
+        producer->set_from(pb_from);
+        producer->set_to(pb_to);
+
+        // Add trigger object producer to the input
+        //
+        addHLTProducer(hash, producer_name);
+    }
+
+    // Save filters
+    //
+    for(size_t filter = 0, filters = trigger_event->sizeFilters();
+            filters > filter;
+            ++filter)
+    {
+        // Test if filter name matches user pattern
+        //
+        string filter_name = trigger_event->filterTag(filter).label();
+        if (!regex_search(filter_name, _hlt_filter_pattern))
+            continue;
+
+        // Vector of associated ProtoBuf object keys that triggered filter
+        //
+        vector<uint32_t> pb_keys;
+
+        // Process associated trigger objects
+        //
+        const trigger::Keys &filter_keys = trigger_event->filterKeys(filter);
+        for(trigger::Keys::const_iterator key = filter_keys.begin();
+                filter_keys.end() != key;
+                ++key)
+        {
+            // Save associated trigger object if it was not added by 
+            // any producer yet
+            //
+            uint32_t pb_key = pb_trigger_info->object().size();
+            if (object_map.end() == object_map.find(*key))
+            {
+                // Store key in map
+                //
+                object_map[*key] = pb_key;
+
+                addTriggerObject(pb_trigger_info->add_object(),
+                        objects[*key]);
+            }
+            else
+                pb_key = object_map[*key];
+
+            pb_keys.push_back(pb_key);
+        }
+
+        // Store filter key in map
+        //
+        filter_map[filter_name] = pb_trigger_info->filter().size();
+
+        // Add trigger object filter to the event
+        //
+        to_lower(filter_name);
+
+        bsm::TriggerFilter *filter = pb_trigger_info->add_filter();
+        const size_t hash = make_hash(filter_name);
+        filter->set_hash(hash);
+
+        for(vector<uint32_t>::const_iterator key = pb_keys.begin();
+                pb_keys.end() != key;
+                ++key)
+        {
+            filter->add_key(*key);
+        }
+
+        // Add trigger object filter to the input
+        //
+        addHLTFilter(hash, filter_name);
+    }
+
+    // Process only triggers that are loaded in the menu 
+    //
+    for(Triggers::const_iterator hlt = _hlts.begin();
+            _hlts.end() != hlt;
+            ++hlt)
+    {
+        bsm::Trigger *trigger = _event->mutable_hlt()->add_trigger();
+
+        trigger->set_hash(hlt->second.hash);
+        trigger->set_pass(trigger_results->accept(hlt->first));
+        trigger->set_version(hlt->second.version);
+
+        // Add associated trigger filters
+        //
+        const Names &modules = _hlt_config->moduleLabels(hlt->second.full_name);
+        for(Names::const_iterator module = modules.begin();
+                modules.end() != module;
+                ++module)
+        {
+            // Search for module in the extracted filters list
+            //
+            MapNameToId::const_iterator filter = filter_map.find(*module);
+            if (filter_map.end() == filter)
+                continue;
+
+            trigger->add_filter(filter->second);
+        }
+
+        // Add new path to the ProtoBuf input map
+        //
+        addHLTPath(hlt->second.hash, hlt->second.name);
+    }
+
+    return true;
+}
+
+bool InputMaker::isTriggerItemInCollection(const TriggerItems &collection,
+        const std::size_t &hash)
+{
+    for(TriggerItems::const_iterator trigger = collection.begin();
+            collection.end() != trigger;
+            ++trigger)
+    {
+        if (hash == trigger->hash())
+        {
+            // Trigger is already stored
+            //
+            return false;
+        }
+    }
+
+    return true;
+}
+
+void InputMaker::addHLTPath(const std::size_t &hash, const std::string &name)
+{
+    bsm::Input::Info::Trigger *triggers =
+        _writer->input()->mutable_info()->mutable_trigger();
+
+    if (isTriggerItemInCollection(triggers->path(), hash))
+        return;
+
+    bsm::TriggerItem *item = triggers->add_path();
+    item->set_hash(hash);
+    item->set_name(name);
+}
+
+void InputMaker::addHLTProducer(const std::size_t &hash, const std::string &name)
+{
+    bsm::Input::Info::Trigger *triggers =
+        _writer->input()->mutable_info()->mutable_trigger();
+
+    if (isTriggerItemInCollection(triggers->producer(), hash))
+        return;
+
+    bsm::TriggerItem *item = triggers->add_producer();
+    item->set_hash(hash);
+    item->set_name(name);
+}
+
+void InputMaker::addHLTFilter(const std::size_t &hash, const std::string &name)
+{
+    bsm::Input::Info::Trigger *triggers =
+        _writer->input()->mutable_info()->mutable_trigger();
+
+    if (isTriggerItemInCollection(triggers->filter(), hash))
+        return;
+
+    bsm::TriggerItem *item = triggers->add_filter();
+    item->set_hash(hash);
+    item->set_name(name);
+}
+
+void InputMaker::addBTags(Jet *pb, const pat::Jet *pat)
+{
+    Jet::BTag *btag = pb->add_btag();
+    btag->set_type(Jet::BTag::TCHE);
+    btag->set_discriminator(
+            pat->bDiscriminator("trackCountingHighEffBJetTags"));
+
+    btag = pb->add_btag();
+    btag->set_type(Jet::BTag::TCHP);
+    btag->set_discriminator(
+            pat->bDiscriminator("trackCountingHighPurBJetTags"));
+
+    btag = pb->add_btag();
+    btag->set_type(Jet::BTag::SSVHE);
+    btag->set_discriminator(
+            pat->bDiscriminator("simpleSecondaryVertexHighEffBJetTags"));
+
+    btag = pb->add_btag();
+    btag->set_type(Jet::BTag::SSVHP);
+    btag->set_discriminator(
+            pat->bDiscriminator("simpleSecondaryVertexHighPurBJetTags"));
+}
+
+void InputMaker::genParticle(const edm::Event &event)
+{
+    if (_gen_particle_tag.label().empty())
         return;
 
     if (event.isRealData())
         return;
 
-    Handle<GenParticleCollection> gen_particles;
-    event.getByLabel(InputTag(_gen_particles_tag), gen_particles);
+    Handle<GenParticleCollection> gen_particle;
+    event.getByLabel(_gen_particle_tag, gen_particle);
 
-    for(GenParticleCollection::const_iterator particle = gen_particles->begin();
-            gen_particles->end() != particle;
+    for(GenParticleCollection::const_iterator particle = gen_particle->begin();
+            gen_particle->end() != particle;
             ++particle)
     {
+        // Skip anything that is neither stable, nor Top
+        //
         if (3 != particle->status()
                 || TOP != abs(particle->pdgId()))
             continue;
 
-        products(_event->add_gen_particles(), *particle, _gen_particle_levels);
+        products(_event->add_gen_particle(),
+                *particle,
+                _gen_particle_depth_level);
     }
 }
 
@@ -366,23 +644,23 @@ void InputMaker::products(bsm::GenParticle *pb_particle,
         if (3 != product->status())
             continue;
 
-        products(pb_particle->add_children(), *product, level - 1);
+        products(pb_particle->add_child(), *product, level - 1);
     }
 }
 
-void InputMaker::jets(const edm::Event &event)
+void InputMaker::jet(const edm::Event &event)
 {
-    if (_jets_tag.empty())
+    if (_jet_tag.label().empty())
         return;
 
     using pat::JetCollection;
 
     Handle<JetCollection> jets;
-    event.getByLabel(InputTag(_jets_tag), jets);
+    event.getByLabel(_jet_tag, jets);
 
     if (!jets.isValid())
     {
-        LogWarning("InputMaker") << "failed to extract jets";
+        LogWarning("InputMaker") << "failed to extract jet";
 
         return;
     }
@@ -391,54 +669,23 @@ void InputMaker::jets(const edm::Event &event)
             jets->end() != jet;
             ++jet)
     {
-        bsm::Jet *pb_jet = _event->add_jets();
+        bsm::Jet *pb_jet = _event->add_jet();
 
+        // Save PAT corrected jet p4
+        //
         utility::set(pb_jet->mutable_physics_object()->mutable_p4(),
                 &jet->p4());
         utility::set(pb_jet->mutable_physics_object()->mutable_vertex(),
             &jet->vertex());
 
+        // Extract uncorrected p4
+        //
         utility::set(pb_jet->mutable_uncorrected_p4(),
                 &jet->correctedP4(0));
 
         addBTags(pb_jet, &*jet);
 
         pb_jet->mutable_extra()->set_area(jet->jetArea());
-
-        /*
-        // Process children (constituents)
-        //
-        for(uint32_t i = 0, max = jet->numberOfDaughters(); max > i; ++i)
-        {
-            const reco::PFJet *child = dynamic_cast<const reco::PFJet *>(jet->daughter(i));
-            if (!child)
-                continue;
-
-            bsm::Jet::Child *pb_child = pb_jet->add_children();
-
-            utility::set(pb_child->mutable_physics_object()->mutable_p4(),
-                    &child->p4());
-            utility::set(pb_child->mutable_physics_object()->mutable_vertex(),
-                    &child->vertex());
-        }
-        */
-
-        /*
-        typedef std::vector<reco::PFCandidatePtr> Constituents;
-        
-        const Constituents &constituents = jet->getPFConstituents();
-        for(Constituents::const_iterator child = constituents.begin();
-                constituents.end() != child;
-                ++child)
-        {
-            bsm::Jet::Child *pb_child = pb_jet->add_children();
-
-            utility::set(pb_child->mutable_physics_object()->mutable_p4(),
-                    &(*child)->p4());
-            utility::set(pb_child->mutable_physics_object()->mutable_vertex(),
-                    &(*child)->vertex());
-        }
-        */
 
         // Skip the rest if Generator Parton is not found for the jet
         //
@@ -459,15 +706,15 @@ void InputMaker::jets(const edm::Event &event)
     }
 }
 
-void InputMaker::pf_electrons(const edm::Event &event)
+void InputMaker::electron(const edm::Event &event)
 {
-    if (_pf_electrons_tag.empty())
+    if (_electron_tag.label().empty())
         return;
 
     using pat::ElectronCollection;
 
     Handle<ElectronCollection> electrons;
-    event.getByLabel(InputTag(_pf_electrons_tag), electrons);
+    event.getByLabel(_electron_tag, electrons);
 
     if (!electrons.isValid())
     {
@@ -480,62 +727,21 @@ void InputMaker::pf_electrons(const edm::Event &event)
             electrons->end() != electron;
             ++electron)
     {
-        /*
-        SimpleCutBasedElectronIDSelectionFunctor electronID(SimpleCutBasedElectronIDSelectionFunctor::cIso70);
-
-        if (!electronID(*electron))
-            continue;
-            */
-
-        bsm::Electron *pb_electron = _event->add_pf_electrons();
+        bsm::Electron *pb_electron = _event->add_electron();
 
         fill(pb_electron, &*electron);
     }
 }
 
-void InputMaker::gsf_electrons(const edm::Event &event)
+void InputMaker::muon(const edm::Event &event)
 {
-    if (_gsf_electrons_tag.empty())
-        return;
-
-    using pat::ElectronCollection;
-
-    Handle<ElectronCollection> electrons;
-    event.getByLabel(InputTag(_gsf_electrons_tag), electrons);
-
-    if (!electrons.isValid())
-    {
-        LogWarning("InputMaker") << "failed to extract GSF electrons";
-
-        return;
-    }
-
-    for(ElectronCollection::const_iterator electron = electrons->begin();
-            electrons->end() != electron;
-            ++electron)
-    {
-        /*
-        SimpleCutBasedElectronIDSelectionFunctor electronID(SimpleCutBasedElectronIDSelectionFunctor::cIso70);
-
-        if (!electronID(*electron))
-            continue;
-            */
-
-        bsm::Electron *pb_electron = _event->add_gsf_electrons();
-
-        fill(pb_electron, &*electron);
-    }
-}
-
-void InputMaker::pf_muons(const edm::Event &event)
-{
-    if (_pf_muons_tag.empty())
+    if (_muon_tag.label().empty())
         return;
 
     using pat::MuonCollection;
 
     Handle<MuonCollection> muons;
-    event.getByLabel(InputTag(_pf_muons_tag), muons);
+    event.getByLabel(_muon_tag, muons);
 
     if (!muons.isValid())
     {
@@ -548,48 +754,21 @@ void InputMaker::pf_muons(const edm::Event &event)
             muons->end() != muon;
             ++muon)
     {
-        bsm::Muon *pb_muon = _event->add_pf_muons();
+        bsm::Muon *pb_muon = _event->add_muon();
 
         fill(pb_muon, &*muon);
     }
 }
 
-void InputMaker::reco_muons(const edm::Event &event)
+void InputMaker::primaryVertex(const edm::Event &event)
 {
-    if (_reco_muons_tag.empty())
-        return;
-
-    using pat::MuonCollection;
-
-    Handle<MuonCollection> muons;
-    event.getByLabel(InputTag(_reco_muons_tag), muons);
-
-    if (!muons.isValid())
-    {
-        LogWarning("InputMaker") << "failed to extract RECO muons";
-
-        return;
-    }
-
-    for(MuonCollection::const_iterator muon = muons->begin();
-            muons->end() != muon;
-            ++muon)
-    {
-        bsm::Muon *pb_muon = _event->add_reco_muons();
-
-        fill(pb_muon, &*muon);
-    }
-}
-
-void InputMaker::primaryVertices(const edm::Event &event)
-{
-    if (_primary_vertices_tag.empty())
+    if (_primary_vertex_tag.label().empty())
         return;
 
     typedef vector<Vertex> PVCollection;
 
     Handle<PVCollection> primary_vertices;
-    event.getByLabel(InputTag(_primary_vertices_tag), primary_vertices);
+    event.getByLabel(_primary_vertex_tag, primary_vertices);
 
     if (!primary_vertices.isValid())
     {
@@ -602,7 +781,7 @@ void InputMaker::primaryVertices(const edm::Event &event)
             primary_vertices->end() != vertex;
             ++vertex)
     {
-        bsm::PrimaryVertex *pb_vertex = _event->add_primary_vertices();
+        bsm::PrimaryVertex *pb_vertex = _event->add_primary_vertex();
 
         utility::set(pb_vertex->mutable_vertex(), &vertex->position());
 
@@ -614,13 +793,13 @@ void InputMaker::primaryVertices(const edm::Event &event)
 
 void InputMaker::met(const edm::Event &event)
 {
-    if (_missing_energies_tag.empty())
+    if (_missing_energy_tag.label().empty())
         return;
 
     using pat::METCollection;
 
     Handle<METCollection> mets;
-    event.getByLabel(InputTag(_missing_energies_tag), mets);
+    event.getByLabel(_missing_energy_tag, mets);
 
     if (!mets.isValid())
     {
@@ -642,52 +821,18 @@ void InputMaker::met(const edm::Event &event)
             &mets->begin()->p4());
 }
 
-bool InputMaker::triggers(const edm::Event &event,
-        const edm::EventSetup &setup)
+void InputMaker::addTriggerObject(bsm::TriggerObject *to,
+        const trigger::TriggerObject &from)
 {
-    if (_hlts_tag.empty()
-            || !_hlt_config
-            || _hlts.empty())
-        return true;
+    // Fill ProtoBuf with values
+    //
+    to->set_particle_id(from.id());
 
-    Handle<TriggerResults> hlts;
-    event.getByLabel(InputTag(_hlts_tag), hlts);
-
-    if (!hlts.isValid())
-    {
-        LogWarning("InputMaker")
-            << "failed to extract HLTs";
-
-        return false;
-    }
-
-    for(Triggers::const_iterator hlt = _hlts.begin();
-            _hlts.end() != hlt;
-            ++hlt)
-    {
-        bsm::Trigger *pb_hlt = _event->add_hlts();
-
-        pb_hlt->set_hash(hlt->second.hash);
-        pb_hlt->set_pass(false);
-        pb_hlt->set_pass(hlts->accept(hlt->first));
-        pb_hlt->set_version(hlt->second.version);
-        pb_hlt->set_prescale(1);
-
-        //pb_hlt->set_prescale(_hlt_config->prescaleValue(event, setup, hlt->second.full_name));
-        //
-    }
-
-    edm::TriggerResultsByName resultsByNameHLT = event.triggerResultsByName("PAT");
-
-    /*
-    const bool scraping_veto = resultsByNameHLT.accept("filter_scraping");
-    const bool hbhe_noise = resultsByNameHLT.accept("filter_hbhenoise");
-    _event->mutable_filters()->set_scraping_veto(scraping_veto);
-    _event->mutable_filters()->set_hbhe_noise(hbhe_noise);
-    */
-    const bool pat_sequence = resultsByNameHLT.accept("p0");
-
-    return pat_sequence;
+    bsm::LorentzVector *p4 = to->mutable_p4();
+    p4->set_e(from.energy());
+    p4->set_px(from.px());
+    p4->set_py(from.py());
+    p4->set_pz(from.pz());
 }
 
 void InputMaker::fill(bsm::Electron *pb_electron, const pat::Electron *electron)
@@ -709,12 +854,12 @@ void InputMaker::fill(bsm::Electron *pb_electron, const pat::Electron *electron)
     pb_pf_isolation->set_photon(electron->photonIso());
 
     bsm::Electron::Extra *extra = pb_electron->mutable_extra();
-    extra->set_d0_bsp(electron->dB());
+    extra->set_d0(electron->dB());
     extra->set_super_cluster_eta(electron->superCluster()->eta());
     extra->set_inner_track_expected_hits(electron->gsfTrack()->trackerExpectedHitsInner().numberOfHits());
 
     // Adding all the electron id info
-    
+    // 
     std::string postfix = "MC";
     
     // VeryLoose
@@ -794,7 +939,7 @@ void InputMaker::fill(bsm::Muon *pb_muon, const pat::Muon *muon)
     bsm::Muon::Extra *extra = pb_muon->mutable_extra();
     extra->set_is_global(muon->isGlobalMuon());
     extra->set_is_tracker(muon->isTrackerMuon());
-    extra->set_d0_bsp(muon->dB());
+    extra->set_d0(muon->dB());
     extra->set_number_of_matches(muon->numberOfMatches());
 
     if (muon->isTrackerMuon())
@@ -814,56 +959,10 @@ void InputMaker::fill(bsm::Muon *pb_muon, const pat::Muon *muon)
     }
 }
 
-void InputMaker::addHLTtoMap(const std::size_t &hash, const std::string &name)
-{
-    typedef ::google::protobuf::RepeatedPtrField<bsm::TriggerItem>
-        TriggerItems;
-
-    bsm::Input::Info *info = _writer->input()->mutable_info();
-    for(TriggerItems::const_iterator trigger = info->triggers().begin();
-            info->triggers().end() != trigger;
-            ++trigger)
-    {
-        if (hash == trigger->hash())
-        {
-            // Trigger is already stored
-            //
-            return;
-        }
-    }
-
-    bsm::TriggerItem *item = info->add_triggers();
-    item->set_hash(hash);
-    item->set_name(name);
-}
-
-void InputMaker::addBTags(Jet *pb, const pat::Jet *pat)
-{
-    Jet::BTag *btag = pb->add_btags();
-    btag->set_type(Jet::BTag::TCHE);
-    btag->set_discriminator(
-            pat->bDiscriminator("trackCountingHighEffBJetTags"));
-
-    btag = pb->add_btags();
-    btag->set_type(Jet::BTag::TCHP);
-    btag->set_discriminator(
-            pat->bDiscriminator("trackCountingHighPurBJetTags"));
-
-    btag = pb->add_btags();
-    btag->set_type(Jet::BTag::SSVHE);
-    btag->set_discriminator(
-            pat->bDiscriminator("simpleSecondaryVertexHighEffBJetTags"));
-
-    btag = pb->add_btags();
-    btag->set_type(Jet::BTag::SSVHP);
-    btag->set_discriminator(
-            pat->bDiscriminator("simpleSecondaryVertexHighPurBJetTags"));
-}
-
 // Auxiliary function to set the electron id
 void set_electronid(bsm::Electron * electron, bsm::Electron::ElectronIDName const name, int const value)
 {
-	bsm::Electron::ElectronID * electronid = electron->add_electronid();
+	bsm::Electron::ElectronID * electronid = electron->add_id();
     electronid->set_name(name);
     electronid->set_identification((value & 1) == 1); 
     electronid->set_isolation((value & 2) == 2);

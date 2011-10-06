@@ -35,7 +35,7 @@ namespace reco
 
 namespace bsm
 {
-    class InputMaker: public edm:: EDAnalyzer,
+    class InputMaker: public edm::EDAnalyzer,
         public bsm::WriterDelegate
     {
         public:
@@ -47,6 +47,9 @@ namespace bsm
             virtual void fileDidOpen(const bsm::Writer *);
 
         private:
+            typedef ::google::protobuf::RepeatedPtrField<bsm::TriggerItem>
+                TriggerItems;
+
             enum
             {
                 TOP = 6
@@ -54,54 +57,65 @@ namespace bsm
 
             void setInputType(std::string);
 
-            virtual void beginJob();
             virtual void beginRun(const edm::Run &, const edm::EventSetup &);
             virtual void analyze(const edm::Event &, const edm::EventSetup &);
-            virtual void endJob();
 
-            void genParticles(const edm::Event &);
+            void initHLT(const edm::Run &, const edm::EventSetup &);
+
+            bool triggers(const edm::Event &, const edm::EventSetup &);
+
+            bool isTriggerItemInCollection(const TriggerItems &collection,
+                    const std::size_t &hash);
+
+            void addHLTPath(const std::size_t &hash,
+                    const std::string &name);
+
+            void addHLTProducer(const std::size_t &hash,
+                    const std::string &name);
+
+            void addHLTFilter(const std::size_t &hash,
+                    const std::string &name);
+
+            void addTriggerObject(bsm::TriggerObject *,
+                    const trigger::TriggerObject &);
+
+            void addBTags(Jet *, const pat::Jet *);
+
+            void genParticle(const edm::Event &);
             void products(bsm::GenParticle *,
                     const reco::Candidate &,
                     const uint32_t &level = 0);
 
-            void jets(const edm::Event &);
+            void jet(const edm::Event &);
 
-            void pf_electrons(const edm::Event &);
-            void gsf_electrons(const edm::Event &);
+            void electron(const edm::Event &);
 
-            void pf_muons(const edm::Event &);
-            void reco_muons(const edm::Event &);
+            void muon(const edm::Event &);
 
-            void primaryVertices(const edm::Event &);
+            void primaryVertex(const edm::Event &);
             void met(const edm::Event &);
-
-            bool triggers(const edm::Event &, const edm::EventSetup &);
 
             void fill(bsm::Electron *, const pat::Electron *);
             void fill(bsm::Muon *, const pat::Muon *);
 
-            void addHLTtoMap(const std::size_t &hash, const std::string &name);
-            void addBTags(Jet *, const pat::Jet *);
+            edm::InputTag _gen_particle_tag;
+            uint32_t _gen_particle_depth_level;
 
-            std::string _gen_particles_tag;
-            uint32_t _gen_particle_levels;
+            edm::InputTag _jet_tag;
+            edm::InputTag _rho_tag;
 
-            std::string _jets_tag;
-            std::string _rho_tag;
+            edm::InputTag _electron_tag;
+            edm::InputTag _muon_tag;
 
-            std::string _pf_electrons_tag;
-            std::string _gsf_electrons_tag;
+            edm::InputTag _primary_vertex_tag;
+            edm::InputTag _missing_energy_tag;
 
-            std::string _pf_muons_tag;
-            std::string _reco_muons_tag;
+            edm::InputTag _trigger_results_tag;
+            edm::InputTag _trigger_event_tag;
 
-            std::string _primary_vertices_tag;
-            std::string _missing_energies_tag;
-
-            std::string _hlts_tag;
-
-            typedef std::vector<std::string> Patterns;
-            Patterns _hlt_patterns;
+            boost::regex _hlt_path_pattern;
+            boost::regex _hlt_producer_pattern;
+            boost::regex _hlt_filter_pattern;
 
             Input::Type _input_type;
 
@@ -110,15 +124,19 @@ namespace bsm
 
             boost::shared_ptr<HLTConfigProvider> _hlt_config;
 
-            struct Trigger
+            struct TriggerItem
             {
                 std::string full_name;
                 std::string name;
                 std::size_t hash;
+            };
+
+            struct Trigger: public TriggerItem
+            {
                 uint32_t version;
             };
 
-            // ID <-> Trigger [Menu]
+            // CMSSW ID/key <-> Trigger object [Menu]
             //
             typedef std::map<uint32_t, Trigger> Triggers;
 
