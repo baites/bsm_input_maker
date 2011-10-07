@@ -521,11 +521,11 @@ bool InputMaker::isTriggerItemInCollection(const TriggerItems &collection,
         {
             // Trigger is already stored
             //
-            return false;
+            return true;
         }
     }
 
-    return true;
+    return false;
 }
 
 void InputMaker::addHLTPath(const std::size_t &hash, const std::string &name)
