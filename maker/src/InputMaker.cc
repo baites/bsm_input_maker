@@ -38,6 +38,8 @@
 #include "bsm_input_maker/bsm_input/interface/Track.pb.h"
 #include "bsm_input_maker/bsm_input/interface/Trigger.pb.h"
 #include "bsm_input_maker/maker/interface/Selector.h"
+#include "bsm_input_maker/maker/interface/ElectronSelector.h"
+#include "bsm_input_maker/maker/interface/MuonSelector.h"
 #include "bsm_input_maker/maker/interface/Utility.h"
 
 #include "bsm_input_maker/maker/interface/InputMaker.h"
@@ -68,11 +70,13 @@ InputMaker::InputMaker(const ParameterSet &config):
     _jet_tag = config.getParameter<InputTag>("jet");
     _rho_tag = config.getParameter<InputTag>("rho");
 
-    _electron_tag = config.getParameter<InputTag>("electron");
-    _muon_tag = config.getParameter<InputTag>("muon");
-
     _primary_vertex_tag = config.getParameter<InputTag>("primary_vertex");
     _missing_energy_tag = config.getParameter<InputTag>("missing_energy");
+
+    _electron_selector.reset(new ElectronSelector(
+                config.getParameter<InputTag>("electron")));
+    _muon_selector.reset(new MuonSelector(
+                config.getParameter<InputTag>("muon"), _primary_vertex_tag));
 
     _trigger_results_tag = config.getParameter<InputTag>("hlt");
     _trigger_event_tag = config.getParameter<InputTag>("trigger_event");
@@ -708,55 +712,37 @@ void InputMaker::jet(const edm::Event &event)
 
 void InputMaker::electron(const edm::Event &event)
 {
-    if (_electron_tag.label().empty())
+    if (!_electron_selector->init(&event))
         return;
 
-    using pat::ElectronCollection;
+    typedef ElectronSelector::Electrons Electrons;
 
-    Handle<ElectronCollection> electrons;
-    event.getByLabel(_electron_tag, electrons);
-
-    if (!electrons.isValid())
-    {
-        LogWarning("InputMaker") << "failed to extract PF electrons";
-
-        return;
-    }
-
-    for(ElectronCollection::const_iterator electron = electrons->begin();
-            electrons->end() != electron;
+    const Electrons &electrons = _electron_selector->electron();
+    for(Electrons::const_iterator electron = electrons.begin();
+            electrons.end() != electron;
             ++electron)
     {
         bsm::Electron *pb_electron = _event->add_electron();
 
-        fill(pb_electron, &*electron);
+        fill(pb_electron, *electron);
     }
 }
 
 void InputMaker::muon(const edm::Event &event)
 {
-    if (_muon_tag.label().empty())
+    if (!_muon_selector->init(&event))
         return;
 
-    using pat::MuonCollection;
+    typedef MuonSelector::Muons Muons;
 
-    Handle<MuonCollection> muons;
-    event.getByLabel(_muon_tag, muons);
-
-    if (!muons.isValid())
-    {
-        LogWarning("InputMaker") << "failed to extract PF muons";
-
-        return;
-    }
-
-    for(MuonCollection::const_iterator muon = muons->begin();
-            muons->end() != muon;
+    const Muons &muons = _muon_selector->muon();
+    for(Muons::const_iterator muon = muons.begin();
+            muons.end() != muon;
             ++muon)
     {
         bsm::Muon *pb_muon = _event->add_muon();
 
-        fill(pb_muon, &*muon);
+        fill(pb_muon, *muon);
     }
 }
 

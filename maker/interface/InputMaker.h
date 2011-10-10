@@ -35,6 +35,9 @@ namespace reco
 
 namespace bsm
 {
+    class ElectronSelector;
+    class MuonSelector;
+
     class InputMaker: public edm::EDAnalyzer,
         public bsm::WriterDelegate
     {
@@ -141,6 +144,9 @@ namespace bsm
             typedef std::map<uint32_t, Trigger> Triggers;
 
             Triggers _hlts;
+
+            boost::shared_ptr<ElectronSelector> _electron_selector;
+            boost::shared_ptr<MuonSelector> _muon_selector;
     };
 }
 
