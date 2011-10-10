@@ -28,8 +28,6 @@ namespace bsm
             Selector(const edm::InputTag &tag);
             virtual ~Selector();
 
-            virtual bool init(const edm::Event *) = 0;
-
             const edm::InputTag &tag() const;
 
         private:
