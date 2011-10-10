@@ -36,6 +36,7 @@ namespace reco
 namespace bsm
 {
     class ElectronSelector;
+    class JetSelector;
     class MuonSelector;
 
     class InputMaker: public edm::EDAnalyzer,
@@ -89,17 +90,16 @@ namespace bsm
                     const reco::Candidate &,
                     const uint32_t &level = 0);
 
-            void jet(const edm::Event &);
-
-            void electron(const edm::Event &);
-
-            void muon(const edm::Event &);
+            bool electron(const edm::Event &);
+            bool muon(const edm::Event &);
+            bool jet(const edm::Event &);
 
             void primaryVertex(const edm::Event &);
             void met(const edm::Event &);
 
             void fill(bsm::Electron *, const pat::Electron *);
             void fill(bsm::Muon *, const pat::Muon *);
+            void fill(bsm::Jet *, const pat::Jet *);
 
             edm::InputTag _gen_particle_tag;
             uint32_t _gen_particle_depth_level;
@@ -147,6 +147,7 @@ namespace bsm
 
             boost::shared_ptr<ElectronSelector> _electron_selector;
             boost::shared_ptr<MuonSelector> _muon_selector;
+            boost::shared_ptr<JetSelector> _jet_selector;
     };
 }
 

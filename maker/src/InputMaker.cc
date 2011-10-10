@@ -39,6 +39,7 @@
 #include "bsm_input_maker/bsm_input/interface/Trigger.pb.h"
 #include "bsm_input_maker/maker/interface/Selector.h"
 #include "bsm_input_maker/maker/interface/ElectronSelector.h"
+#include "bsm_input_maker/maker/interface/JetSelector.h"
 #include "bsm_input_maker/maker/interface/MuonSelector.h"
 #include "bsm_input_maker/maker/interface/Utility.h"
 
@@ -168,14 +169,17 @@ void InputMaker::analyze(const edm::Event &event,
     if (!_writer->isOpen())
         return;
 
+    if (!triggers(event, setup)
+            || !electron(event)
+            || !muon(event)
+            || !jet(event))
+        return;
+
     // Set event ID
     //
     _event->mutable_extra()->set_id(event.id().event());
     _event->mutable_extra()->set_run(event.id().run());
     _event->mutable_extra()->set_lumi(event.id().luminosityBlock());
-
-    if (!triggers(event, setup))
-        return;
 
     if (!_rho_tag.label().empty())
     {
@@ -189,12 +193,6 @@ void InputMaker::analyze(const edm::Event &event,
     }
 
     genParticle(event);
-
-    jet(event);
-
-    electron(event);
-
-    muon(event);
 
     primaryVertex(event);
     met(event);
@@ -652,98 +650,75 @@ void InputMaker::products(bsm::GenParticle *pb_particle,
     }
 }
 
-void InputMaker::jet(const edm::Event &event)
+bool InputMaker::electron(const edm::Event &event)
 {
-    if (_jet_tag.label().empty())
-        return;
+    bool result = _electron_selector->init(&event)
+        && 1 == _electron_selector->electron().empty();
 
-    using pat::JetCollection;
-
-    Handle<JetCollection> jets;
-    event.getByLabel(_jet_tag, jets);
-
-    if (!jets.isValid())
+    if (result)
     {
-        LogWarning("InputMaker") << "failed to extract jet";
+        typedef ElectronSelector::Electrons Electrons;
 
-        return;
+        const Electrons &electrons = _electron_selector->electron();
+        for(Electrons::const_iterator electron = electrons.begin();
+                electrons.end() != electron;
+                ++electron)
+        {
+            bsm::Electron *pb_electron = _event->add_electron();
+
+            fill(pb_electron, *electron);
+        }
     }
 
-    for(JetCollection::const_iterator jet = jets->begin();
-            jets->end() != jet;
-            ++jet)
-    {
-        bsm::Jet *pb_jet = _event->add_jet();
-
-        // Save PAT corrected jet p4
-        //
-        utility::set(pb_jet->mutable_physics_object()->mutable_p4(),
-                &jet->p4());
-        utility::set(pb_jet->mutable_physics_object()->mutable_vertex(),
-            &jet->vertex());
-
-        // Extract uncorrected p4
-        //
-        utility::set(pb_jet->mutable_uncorrected_p4(),
-                &jet->correctedP4(0));
-
-        addBTags(pb_jet, &*jet);
-
-        pb_jet->mutable_extra()->set_area(jet->jetArea());
-
-        // Skip the rest if Generator Parton is not found for the jet
-        //
-        if (!jet->genParton())
-            continue;
-
-        const reco::GenParticle *parton = jet->genParton();
-        bsm::GenParticle *pb_gen_particle = pb_jet->mutable_gen_parton();
-
-        utility::set(pb_gen_particle->mutable_physics_object()->mutable_p4(),
-                &parton->p4());
-
-        utility::set(pb_gen_particle->mutable_physics_object()->mutable_vertex(),
-                &parton->vertex());
-
-        pb_gen_particle->set_id(parton->pdgId());
-        pb_gen_particle->set_status(parton->status());
-    }
+    return result;
 }
 
-void InputMaker::electron(const edm::Event &event)
+bool InputMaker::muon(const edm::Event &event)
 {
-    if (!_electron_selector->init(&event))
-        return;
+    bool result = _muon_selector->init(&event)
+        && _muon_selector->muon().empty();
 
-    typedef ElectronSelector::Electrons Electrons;
-
-    const Electrons &electrons = _electron_selector->electron();
-    for(Electrons::const_iterator electron = electrons.begin();
-            electrons.end() != electron;
-            ++electron)
+    if (result)
     {
-        bsm::Electron *pb_electron = _event->add_electron();
+        typedef MuonSelector::Muons Muons;
 
-        fill(pb_electron, *electron);
+        const Muons &muons = _muon_selector->muon();
+        for(Muons::const_iterator muon = muons.begin();
+                muons.end() != muon;
+                ++muon)
+        {
+            bsm::Muon *pb_muon = _event->add_muon();
+
+            fill(pb_muon, *muon);
+        }
     }
+
+    return result;
 }
 
-void InputMaker::muon(const edm::Event &event)
+bool InputMaker::jet(const edm::Event &event)
 {
-    if (!_muon_selector->init(&event))
-        return;
+    bool result = _jet_selector->init(&event,
+                _electron_selector->electron(),
+                _muon_selector->muon())
+        && 1 < _jet_selector->jet().size();
 
-    typedef MuonSelector::Muons Muons;
-
-    const Muons &muons = _muon_selector->muon();
-    for(Muons::const_iterator muon = muons.begin();
-            muons.end() != muon;
-            ++muon)
+    if (result)
     {
-        bsm::Muon *pb_muon = _event->add_muon();
+        typedef JetSelector::Jets Jets;
 
-        fill(pb_muon, *muon);
+        const Jets &jets = _jet_selector->jet();
+        for(Jets::const_iterator jet = jets.begin();
+                jets.end() != jet;
+                ++jet)
+        {
+            bsm::Jet *pb_jet = _event->add_jet();
+
+            fill(pb_jet, *jet);
+        }
     }
+
+    return result;
 }
 
 void InputMaker::primaryVertex(const edm::Event &event)
@@ -943,6 +918,42 @@ void InputMaker::fill(bsm::Muon *pb_muon, const pat::Muon *muon)
         track->set_hits(muon->globalTrack()->hitPattern().numberOfValidMuonHits());
         track->set_normalized_chi2(muon->globalTrack()->normalizedChi2());
     }
+}
+
+void InputMaker::fill(bsm::Jet *pb_jet, const pat::Jet *jet)
+{
+    // Save PAT corrected jet p4
+    //
+    utility::set(pb_jet->mutable_physics_object()->mutable_p4(),
+            &jet->p4());
+    utility::set(pb_jet->mutable_physics_object()->mutable_vertex(),
+        &jet->vertex());
+
+    // Extract uncorrected p4
+    //
+    utility::set(pb_jet->mutable_uncorrected_p4(),
+            &jet->correctedP4(0));
+
+    addBTags(pb_jet, &*jet);
+
+    pb_jet->mutable_extra()->set_area(jet->jetArea());
+
+    // Skip the rest if Generator Parton is not found for the jet
+    //
+    if (!jet->genParton())
+        return;
+
+    const reco::GenParticle *parton = jet->genParton();
+    bsm::GenParticle *pb_gen_particle = pb_jet->mutable_gen_parton();
+
+    utility::set(pb_gen_particle->mutable_physics_object()->mutable_p4(),
+            &parton->p4());
+
+    utility::set(pb_gen_particle->mutable_physics_object()->mutable_vertex(),
+            &parton->vertex());
+
+    pb_gen_particle->set_id(parton->pdgId());
+    pb_gen_particle->set_status(parton->status());
 }
 
 // Auxiliary function to set the electron id
