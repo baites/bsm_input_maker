@@ -14,6 +14,7 @@ InputMaker = cms.EDAnalyzer(
     gen_particle_depth_level = cms.uint32(2),
 
     jet = cms.InputTag("goodPatJetsPFlow::PAT"),
+    jec = cms.vstring(),
     rho = cms.InputTag("kt6PFJetsPFlow:rho:PAT"),
 
     electron = cms.InputTag("selectedPatElectronsLoosePFlow::PAT"),

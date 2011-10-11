@@ -67,8 +67,6 @@ InputMaker::InputMaker(const ParameterSet &config):
     _gen_particle_depth_level =
         std::min(config.getParameter<uint32_t>("gen_particle_depth_level"),
             static_cast<uint32_t>(10));
-
-    _jet_tag = config.getParameter<InputTag>("jet");
     _rho_tag = config.getParameter<InputTag>("rho");
 
     _primary_vertex_tag = config.getParameter<InputTag>("primary_vertex");
@@ -78,6 +76,10 @@ InputMaker::InputMaker(const ParameterSet &config):
                 config.getParameter<InputTag>("electron")));
     _muon_selector.reset(new MuonSelector(
                 config.getParameter<InputTag>("muon"), _primary_vertex_tag));
+    _jet_selector.reset(new JetSelector(config.getParameter<InputTag>("jet"),
+            _primary_vertex_tag,
+            _rho_tag,
+            config.getParameter<vector<string> >("jec")));
 
     _trigger_results_tag = config.getParameter<InputTag>("hlt");
     _trigger_event_tag = config.getParameter<InputTag>("trigger_event");
@@ -166,6 +168,8 @@ void InputMaker::beginRun(const Run &run, const EventSetup &setup)
 void InputMaker::analyze(const edm::Event &event,
                         const edm::EventSetup &setup)
 {
+    _event->Clear();
+
     if (!_writer->isOpen())
         return;
 
@@ -653,7 +657,7 @@ void InputMaker::products(bsm::GenParticle *pb_particle,
 bool InputMaker::electron(const edm::Event &event)
 {
     bool result = _electron_selector->init(&event)
-        && 1 == _electron_selector->electron().empty();
+        && 1 == _electron_selector->electron().size();
 
     if (result)
     {

@@ -34,6 +34,9 @@ JetSelector::JetSelector(const InputTag &jet_tag,
             jec_files.end() != file;
             ++file)
     {
+        LogWarning("JetSelector")
+            << "Load JEC: " << *file;
+
         corrections.push_back(JetCorrectorParameters(*file));
     }
 
@@ -49,9 +52,10 @@ bool JetSelector::init(const Event *event,
     typedef vector<reco::Vertex> PrimaryVertices;
     typedef math::XYZTLorentzVector LorentzVector;
 
+    // Extract Primary Vertices, jets, rho
+    //
     Handle<PrimaryVertices> primary_vertices;
     event->getByLabel(primaryVertexTag(), primary_vertices);
-
 
     Handle<JetCollection> jets;
     event->getByLabel(tag(), jets);
@@ -80,20 +84,22 @@ bool JetSelector::init(const Event *event,
     }
     else
     {
+        // Clean up jets: remove leptons
+        //
         for(JetCollection::const_iterator jet = jets->begin();
                 jets->end() != jet;
                 ++jet)
         {
-            // Remove leptons from the jet
-            //
             const LorentzVector *pat_p4 = &jet->p4();
             LorentzVector raw_p4 = jet->correctedP4(0);
 
+            // Remove leptons from the jet
+            //
             for(Electrons::const_iterator e = electrons.begin();
                     electrons.end() != e;
                     ++e)
             {
-                if (0.3 >= reco::deltaR((*e)->eta(),
+                if (0.5 >= reco::deltaR((*e)->eta(),
                             (*e)->phi(),
                             pat_p4->eta(),
                             pat_p4->phi()))
@@ -106,7 +112,7 @@ bool JetSelector::init(const Event *event,
                     muons.end() != m;
                     ++m)
             {
-                if (0.3 >= reco::deltaR((*m)->eta(),
+                if (0.5 >= reco::deltaR((*m)->eta(),
                             (*m)->phi(),
                             pat_p4->eta(),
                             pat_p4->phi()))
@@ -125,15 +131,22 @@ bool JetSelector::init(const Event *event,
             const double &correction = _jec->getCorrection();
             raw_p4 *= correction;
 
-            if (25 < raw_p4.pt()
+            if (50 < raw_p4.pt()
                     && 2.4 > fabs(raw_p4.eta()))
+            {
                 _jet.push_back(&*jet);
+            }
         }
 
         result = true;
     }
 
     return result;
+}
+
+const JetSelector::Jets &JetSelector::jet() const
+{
+    return _jet;
 }
 
 const edm::InputTag &JetSelector::primaryVertexTag() const
