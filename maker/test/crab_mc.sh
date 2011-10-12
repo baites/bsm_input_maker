@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-if [[ 4 -gt $# ]]
+if [[ 2 -gt $# ]]
 then
     echo Usage: `basename $0` cmssw_cfg.py DATASET [cmssw args]
 
@@ -17,7 +17,7 @@ fi
 
 dataset=$2
 
-prod_folder=prod_`date +%F_%R_%S | sed -e 's/[-:]/_/g'`
+prod_folder=`date +%F_%R_%S | sed -e 's/[-:]/_/g'`
 
 eval "sed -e 's#DATASET#${dataset}#g' \
     -e 's#CONFIG#${pset}#' \
