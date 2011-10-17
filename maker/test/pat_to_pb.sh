@@ -62,6 +62,7 @@ mkdir $prod_folder
 
 cp $input_file $prod_folder/input.txt
 cp $config_file $prod_folder/cmssw_cfg.py
+cp L*.txt $prod_folder
 touch $prod_folder/proxy
 
 eval "sed -e 's#CMSRUN#$CMSRUN#' ./run_pat_to_pb.sh &> $prod_folder/run.sh"
@@ -78,6 +79,11 @@ do
     eval "awk 'NR > $(( job * files_per_job )) && NR <= $(( (job + 1) * files_per_job ))' input.txt > $work_folder/input.txt"
     ln -s ../cmssw_cfg.py $work_folder/cmssw_cfg.py
     ln -s ../proxy $work_folder/proxy
+
+    for file in `find . -maxdepth 1 -type f -name L\*.txt`
+    do
+        ln -s ../$file $work_folder/$file
+    done
 done
 
 condor_submit ./condor.cfg
