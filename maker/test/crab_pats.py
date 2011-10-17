@@ -89,7 +89,8 @@ class Files:
         # enumerate over jobs and search for corresponding latest file
         #
         for i, job in enumerate(jobs):
-            pattern = os.path.join(path, "*fat_{0}_*.root".format(job))
+            #pattern = os.path.join(path, "*fat_{0}_*.root".format(job))
+            pattern = os.path.join(path, "ttbsm_42x_data_{0}_*.root".format(job))
 
             results = glob.iglob(pattern)
             newest_file = ""
