@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+#
+# Add leading slash to CRAB LFNs in XMLs
+#
+# Created by Samvel Khalatyan, Oct 17, 2011
+# Copyright 2011, All rights reserved
 
 if [[ 1 > $# ]]
 then
