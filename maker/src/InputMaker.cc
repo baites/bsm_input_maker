@@ -31,6 +31,7 @@
 #include "FWCore/Utilities/interface/InputTag.h"
 #include "HLTrigger/HLTcore/interface/HLTConfigProvider.h"
 #include "PhysicsTools/SelectorUtils/interface/SimpleCutBasedElectronIDSelectionFunctor.h"
+#include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
 
 #include "bsm_input_maker/bsm_input/interface/Event.pb.h"
 #include "bsm_input_maker/bsm_input/interface/Input.pb.h"
@@ -62,6 +63,8 @@ InputMaker::InputMaker(const ParameterSet &config):
 
     _event.reset(new Event());
     _hlt_config.reset(new HLTConfigProvider());
+
+    _pileup_tag = config.getParameter<InputTag>("pileup");
 
     _gen_particle_tag = config.getParameter<InputTag>("gen_particle");
     _gen_particle_depth_level =
@@ -185,6 +188,8 @@ void InputMaker::analyze(const edm::Event &event,
     _event->mutable_extra()->set_run(event.id().run());
     _event->mutable_extra()->set_lumi(event.id().luminosityBlock());
 
+    // Jet RHO
+    //
     if (!_rho_tag.label().empty())
     {
         Handle<double> rho;
@@ -195,6 +200,8 @@ void InputMaker::analyze(const edm::Event &event,
         else
             LogWarning("InputMaker") << "failed to extract rho";
     }
+
+    pileUp(event);
 
     genParticle(event);
 
@@ -596,6 +603,55 @@ void InputMaker::addBTags(Jet *pb, const pat::Jet *pat)
             pat->bDiscriminator("simpleSecondaryVertexHighPurBJetTags"));
 }
 
+void InputMaker::pileUp(const edm::Event &event)
+{
+    if (_pileup_tag.label().empty())
+        return;
+
+    typedef vector<PileupSummaryInfo> Pileup;
+    Handle<Pileup> pileup;
+    event.getByLabel(_pileup_tag, pileup);
+
+    if (!pileup.isValid())
+    {
+        LogWarning("InputMaker")
+            << "failed to extract pileup";
+
+        return;
+    }
+
+    bsm::Event::PileUp *bsm_pileup = _event->mutable_pileup();
+
+    for(Pileup::const_iterator pu = pileup->begin();
+            pileup->end() != pu;
+            ++pu)
+    {
+        switch(pu->getBunchCrossing())
+        {
+            // Previous bunch-crossing
+            //
+            case -1:
+                bsm_pileup->set_interactions_prev_bunch(pu->getPU_NumInteractions());
+                break;
+
+            // Current bunch-crossing
+            //
+            case 0:
+                bsm_pileup->set_interactions_curr_bunch(pu->getPU_NumInteractions());
+                break;
+
+            // Next bunch-crossing
+            //
+            case 1:
+                bsm_pileup->set_interactions_next_bunch(pu->getPU_NumInteractions());
+                break;
+
+            default:
+                break;
+        }
+    }
+}
+
 void InputMaker::genParticle(const edm::Event &event)
 {
     if (_gen_particle_tag.label().empty())
@@ -606,6 +662,14 @@ void InputMaker::genParticle(const edm::Event &event)
 
     Handle<GenParticleCollection> gen_particle;
     event.getByLabel(_gen_particle_tag, gen_particle);
+
+    if (!gen_particle.isValid())
+    {
+        LogWarning("InputMaker")
+            << "failed to extract gen. particles";
+
+        return;
+    }
 
     for(GenParticleCollection::const_iterator particle = gen_particle->begin();
             gen_particle->end() != particle;

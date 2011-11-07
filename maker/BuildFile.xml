@@ -17,6 +17,7 @@
 <use name="JetMETCorrections/Modules"/>
 <use name="HLTrigger/HLTcore"/>
 <use name="PhysicsTools/SelectorUtils"/>
+<use name="SimDataFormats/PileupSummaryInfo"/>
 <use name="bsm_input_maker/bsm_input"/>
 
 <flags CXXFLAGS="-I${CMSSW_BASE}/src/bsm_input_maker/input/interface -I${CMSSW_BASE}/src/bsm_input_maker"/>

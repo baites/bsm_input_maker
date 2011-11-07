@@ -85,6 +85,7 @@ namespace bsm
 
             void addBTags(Jet *, const pat::Jet *);
 
+            void pileUp(const edm::Event &);
             void genParticle(const edm::Event &);
             void products(bsm::GenParticle *,
                     const reco::Candidate &,
@@ -101,6 +102,7 @@ namespace bsm
             void fill(bsm::Muon *, const pat::Muon *);
             void fill(bsm::Jet *, const pat::Jet *);
 
+            edm::InputTag _pileup_tag;
             edm::InputTag _gen_particle_tag;
             uint32_t _gen_particle_depth_level;
 

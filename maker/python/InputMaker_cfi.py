@@ -7,6 +7,8 @@ InputMaker = cms.EDAnalyzer(
     #
     output_filename = cms.string("input.pb"),
 
+    pileup = cms.InputTag("addPileupInfo::HLT"),
+
     gen_particle = cms.InputTag("prunedGenParticles::PAT"),
     
     # Define, now deep in the decay tree the gen-particles should be searched
