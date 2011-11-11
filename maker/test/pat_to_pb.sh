@@ -65,8 +65,14 @@ cp $config_file $prod_folder/cmssw_cfg.py
 cp L*.txt $prod_folder
 touch $prod_folder/proxy
 
+TRANSFERS="input.txt,cmssw_cfg.py,proxy"
+for file in L*.txt
+do
+    TRANSFERS="$TRANSFERS,`basename $file`"
+done
+
 eval "sed -e 's#CMSRUN#$CMSRUN#' ./run_pat_to_pb.sh &> $prod_folder/run.sh"
-eval "sed -e 's#PWD#$PWD/$prod_folder#g' -e 's#ARGS#$@#' -e 's#JOBS#$JOBS#' ./condor.cfg &> $prod_folder/condor.cfg"
+eval "sed -e 's#PWD#$PWD/$prod_folder#g' -e 's#ARGS#$@#' -e 's#JOBS#$JOBS#' -e 's#TRANSFERS#$TRANSFERS#' ./condor.cfg &> $prod_folder/condor.cfg"
 
 chmod u+x $prod_folder/run.sh
 
