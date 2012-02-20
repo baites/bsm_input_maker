@@ -6,6 +6,9 @@
 #ifndef BSM_SELECTOR
 #define BSM_SELECTOR
 
+#include "FWCore/Framework/interface/Frameworkfwd.h"
+#include "FWCore/Utilities/interface/InputTag.h"
+
 namespace reco
 {
     class Vertex;
@@ -18,6 +21,19 @@ namespace bsm
         bool isGoodPrimaryVertex(const reco::Vertex &vertex,
                                  const bool &is_real_data = false);
     }
+
+    class Selector
+    {
+        public:
+            Selector(const edm::InputTag &tag);
+            virtual ~Selector();
+
+            const edm::InputTag &tag() const;
+
+        private:
+            edm::InputTag _tag;
+    };
+
 }
 
 #endif

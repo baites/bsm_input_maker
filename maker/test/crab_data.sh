@@ -24,7 +24,7 @@ then
     exit 1
 fi
 
-prod_folder=prod_`date +%F_%R_%S | sed -e 's/[-:]/_/g'`
+prod_folder=`date +%F_%R_%S | sed -e 's/[-:]/_/g'`
 
 eval "sed -e 's#DATASET#${dataset}#g' \
     -e 's#CONFIG#${pset}#' \

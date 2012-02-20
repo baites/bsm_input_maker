@@ -2,23 +2,43 @@ import FWCore.ParameterSet.Config as cms
 
 InputMaker = cms.EDAnalyzer(
     'InputMaker',
-    fileName = cms.string("input.pb"),
 
-    gen_particles = cms.string("prunedGenParticles"),
-    jets = cms.string("goodPatJetsPFlow"),
-    rho = cms.string("kt6PFJetsPFlow"),
+    # ProtoBuf output filename mask
+    #
+    output_filename = cms.string("input.pb"),
 
-    pf_electrons = cms.string("selectedPatElectronsLoosePFlow"),
-    gsf_electrons = cms.string("selectedPatElectrons"),
+    pileup = cms.InputTag("addPileupInfo::HLT"),
 
-    pf_muons = cms.string("selectedPatMuonsLoosePFlow"),
-    reco_muons = cms.string("selectedPatMuons"),
+    gen_particle = cms.InputTag("prunedGenParticles::PAT"),
+    
+    # Define, now deep in the decay tree the gen-particles should be searched
+    #
+    gen_particle_depth_level = cms.uint32(2),
 
-    primary_vertices = cms.string("goodOfflinePrimaryVertices"),
-    missing_energies = cms.string("patMETsPFlow"),
+    jet = cms.InputTag("goodPatJetsPFlow::PAT"),
+    jec = cms.vstring(),
+    rho = cms.InputTag("kt6PFJetsPFlow:rho:PAT"),
 
-    hlts = cms.string("TriggerResults::REDIGI311X"),
-    hlt_pattern = cms.string("hlt_*"),
+    electron = cms.InputTag("selectedPatElectronsLoosePFlow::PAT"),
+    muon = cms.InputTag("selectedPatMuonsLoosePFlow::PAT"),
+
+    primary_vertex = cms.InputTag("goodOfflinePrimaryVertices::PAT"),
+    missing_energy = cms.InputTag("patMETsPFlow::PAT"),
+
+    hlt = cms.InputTag("TriggerResults::HLT"),
+    trigger_event = cms.InputTag("hltTriggerSummaryAOD::HLT"),
+
+    # Regular expression for path patterns to be saved
+    #
+    hlt_path_pattern = cms.string("^hlt_ele.*caloid.*caloiso.*$"),
+
+    # Pattern for HLT producers to be saved
+    #
+    hlt_producer_pattern = cms.string("^.*$"),
+
+    # Patternf for path filters to be saved
+    #
+    hlt_filter_pattern = cms.string("^.*$"),
 
     input_type = cms.string("unknown")
 )

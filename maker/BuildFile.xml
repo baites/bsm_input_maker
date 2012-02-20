@@ -2,6 +2,7 @@
 <use name="boost"/>
 <use naem="CommonTools/UtilAlgos"/>
 <use name="DataFormats/Common"/>
+<use name="DataFormats/HLTReco"/>
 <use name="DataFormats/HepMCCandidate"/>
 <use name="DataFormats/Math"/>
 <use name="DataFormats/PatCandidates"/>
@@ -16,6 +17,7 @@
 <use name="JetMETCorrections/Modules"/>
 <use name="HLTrigger/HLTcore"/>
 <use name="PhysicsTools/SelectorUtils"/>
+<use name="SimDataFormats/PileupSummaryInfo"/>
 <use name="bsm_input_maker/bsm_input"/>
 
 <flags CXXFLAGS="-I${CMSSW_BASE}/src/bsm_input_maker/input/interface -I${CMSSW_BASE}/src/bsm_input_maker"/>
