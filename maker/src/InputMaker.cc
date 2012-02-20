@@ -1023,21 +1023,9 @@ void InputMaker::fill(bsm::Jet *pb_jet, const pat::Jet *jet)
     pb_gen_particle->set_status(parton->status());
 }
 
-// Auxiliary function to set the electron id
 void set_electronid(bsm::Electron * electron, bsm::Electron::ElectronIDName const name, int const value)
 {
-	bsm::Electron::ElectronID * electronid = electron->add_id();
-    electronid->set_name(name);
-    electronid->set_identification((value & 1) == 1); 
-    electronid->set_isolation((value & 2) == 2);
-    electronid->set_conversion_rejection((value & 4) == 4);
-    electronid->set_impact_parameter((value & 8) == 8);    
-}
-
-// Auxiliary function to set the electron id
-void set_electronid(bsm::Electron * electron, bsm::Electron::ElectronIDName const name, int const value)
-{
-	bsm::Electron::ElectronID * electronid = electron->add_electronid();
+    bsm::Electron::ElectronID * electronid = electron->add_id();
     electronid->set_name(name);
     electronid->set_identification((value & 1) == 1); 
     electronid->set_isolation((value & 2) == 2);
